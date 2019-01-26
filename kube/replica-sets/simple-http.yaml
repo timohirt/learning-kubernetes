@@ -1,0 +1,27 @@
+apiVersion: apps/v1beta2
+kind: ReplicaSet
+metadata:
+  name: simple-http-rs
+  labels:
+    app: simple-http-rs
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: simple-http-rs
+  template:
+    metadata:
+      labels:
+        app: simple-http-rs 
+    spec:
+      containers:
+      - image: simple-http:current
+        name: simple-http
+        ports:
+        - containerPort: 30000
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 30000
+          initialDelaySeconds: 15

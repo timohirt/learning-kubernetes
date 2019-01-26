@@ -1,0 +1,6 @@
+.env
+**/bin
+**/target
+**/pkg
+**/golang.org
+**/github.com

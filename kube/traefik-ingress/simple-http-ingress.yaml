@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: simple-http
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: simple-http.minikube
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: simple-http
+          servicePort: 30001

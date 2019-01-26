@@ -1,0 +1,33 @@
+# Learning Kubernetes
+
+This repository contains examples I used to learn more about Kubernetes. I use
+this repository to take notes and write about what I learnt and what might be
+useful to know about Kubernetes, its components and how to use it.
+
+**Disclaimer**: As stated above, this repo is mainly for taking notes. It is
+not meant to be a complete reference.
+
+## Minikube
+
+I primarily use [Minikube](https://kubernetes.io/docs/setup/minikube/) on my
+MacBook. It is very easy to get a Kubernetes cluster up and running with VirtualBox.
+
+```
+minikube start --vm-driver=virtualbox
+```
+
+This command creates a VM and starts a sinlge node Kubernetes cluster. 
+
+## Making Docker Images Available In Minikube
+
+Currently, I don't push Docker images to a public repository. Instead I
+configure the `docker` command to use Docker on the Minicube VM to build an
+image.
+
+```bash
+eval $(minikube docker-env)
+```
+
+After running this command all docker images build are available in Minikube
+and can be used in pod specifications for example.
+
