@@ -11,8 +11,8 @@ import (
 )
 
 type healthResponse struct {
-	status   string
-	hostname string
+	Status   string `json:"status"`
+	Hostname string `json:"hostname"`
 }
 
 func main() {
