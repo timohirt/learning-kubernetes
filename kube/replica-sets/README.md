@@ -80,25 +80,49 @@ create new pods.
 Let's create a ReplicaSet:
 
 ```bash
-kubectl create -f ./simple-http.yaml
+$ kubectl create -f ./simple-http.yaml
 replicaset.apps "simple-http-rs" created
 ```
 
 Now let's check if the specified pod replicas are running:
 
 ```bash
-kubectl get pods
+$ kubectl get pods
 NAME                     READY     STATUS    RESTARTS   AGE
 simple-http-rs-chtvt     1/1       Running   0          1m
 simple-http-rs-ww2r4     1/1       Running   0          1m
 ```
 
-Two `simple-http` pods are running. 
+Two `simple-http` pods are running. Let's now look how to sent a HTTP request
+to the simple-http service running in a pod.
+
+```bash
+$ kubectl port-forward simple-http-rs-ww2r4 30000:30000
+$ http :30000/health
+
+HTTP/1.1 200 OK
+Content-Length: 50
+Content-Type: text/plain; charset=utf-8
+Date: Sat, 26 Jan 2019 20:49:23 GMT
+
+{
+    "hostname": "simple-http-rs-ww2r4",
+    "status": "OK"
+}
+
+```
+
+Note that the first command forwards the local port 30000 to port 30000 of a
+specific pod. If this pod now disappears, requests would run into connection
+errors.. ReplicaSet would create a new pod, but this specific pod would never
+come back. So, in real applications you should never directly connect to a pod
+unless low availability is ok. Use Kubernetes Services instead to connect to
+pods.
 
 Now let's delete one pod. The ReplicaSet should immediately create a new pod.
 
 ```bash
-kubectl delete pod simple-http-rs-chtvt
+$ kubectl delete pod simple-http-rs-chtvt
 pod "simple-http-rs-chtvt" deleted
 
 $ kubectl get pods
