@@ -4,12 +4,12 @@ A ReplicaSet ensures that a specified number of pod replicas are running. It
 replaces the Replication Controller, which is deprecated and will eventually
 removed.
 
-When a pod fails or isn't reachable, or an entire Node fails, a ReplicaSet
+When a pod fails, isn't reachable, or an entire Node fails, a ReplicaSet
 recreates new Pods automatically. Additionally, a liveness check can be defined,
-which is used by the ReplicaSet to check is a service is still alive. If a Java
-is `OutOfMemory`, the corresponding java process and pod are still running, but
-not responding to HTTP requests for example. A HTTP GET liveness check helps to
-identify these pods, ReplicaSet deletes the pod and creates a new one.
+which is used by a ReplicaSet to check if a service is still alive. If a JDK process
+is `OutOfMemory` for example, the process and thus the container are still running,
+but is will not responde to HTTP requests anymore. A HTTP GET liveness check helps to
+identify affected pods. A ReplicaSet deletes the pod and creates a new one.
 
 The number of replicas can be increased and decreased manually. ReplicaSets
 support [Horizonal
@@ -79,14 +79,14 @@ create new pods.
 
 Let's create a ReplicaSet:
 
-```
+```bash
 kubectl create -f ./simple-http.yaml
 replicaset.apps "simple-http-rs" created
 ```
 
 Now let's check if the specified pod replicas are running:
 
-```
+```bash
 kubectl get pods
 NAME                     READY     STATUS    RESTARTS   AGE
 simple-http-rs-chtvt     1/1       Running   0          1m
@@ -97,7 +97,7 @@ Two `simple-http` pods are running.
 
 Now let's delete one pod. The ReplicaSet should immediately create a new pod.
 
-```
+```bash
 kubectl delete pod simple-http-rs-chtvt
 pod "simple-http-rs-chtvt" deleted
 
@@ -110,7 +110,7 @@ simple-http-rs-z8wlv     1/1       Running       0          2s
 
 As expected, the ReplicaSet created a new pod, which is already running.
 
-# When to use ReplicaSets
+## When to use ReplicaSets
 
 You typically don't create ReplicaSets on your own to deploy pods.
 Instead you would typically use a Deployment, which internally creates a
