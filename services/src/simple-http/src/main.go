@@ -11,22 +11,42 @@ import (
 )
 
 type healthResponse struct {
-	Status   string `json:"status"`
+	Status string `json:"status"`
+}
+
+type hostResponse struct {
 	Hostname string `json:"hostname"`
 }
 
-func main() {
-	var router = mux.NewRouter()
-	router.HandleFunc("/health", healthCheck).Methods("GET")
-
-	loggedRouter := handlers.LoggingHandler(os.Stdout, router)
-
-	log.Println("Running server!")
-	log.Fatal(http.ListenAndServe(":30000", loggedRouter))
+type SimpleHttpService struct {
+	Router *mux.Router
 }
 
-func healthCheck(w http.ResponseWriter, r *http.Request) {
+func (service *SimpleHttpService) Init() {
+	service.Router = mux.NewRouter()
+	service.Router.HandleFunc("/health", healthHandler).Methods("GET")
+	service.Router.HandleFunc("/host", hostHandler).Methods("GET")
+}
+
+func (service *SimpleHttpService) run(addr string) {
+	log.Println("Running server!")
+	loggingRouter := handlers.LoggingHandler(os.Stdout, service.Router)
+	log.Fatal(http.ListenAndServe(addr, loggingRouter))
+}
+
+func main() {
+	service := SimpleHttpService{}
+	service.Init()
+	service.run(":30000")
+}
+
+func hostHandler(w http.ResponseWriter, r *http.Request) {
 	hostname, _ := os.Hostname()
-	response := healthResponse{"OK", hostname}
+	response := hostResponse{hostname}
+	json.NewEncoder(w).Encode(response)
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	response := healthResponse{"OK"}
 	json.NewEncoder(w).Encode(response)
 }
