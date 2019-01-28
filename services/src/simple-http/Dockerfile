@@ -11,9 +11,9 @@ RUN dep ensure -vendor-only
 
 # Copy the code
 COPY . ./
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /main ./src/*
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /simple-http ./src/*
 
 FROM scratch
-COPY --from=builder /main ./
-ENTRYPOINT ["./main"]
+COPY --from=builder /simple-http ./
+ENTRYPOINT ["./simple-http"]
 

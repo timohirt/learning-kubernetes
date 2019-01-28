@@ -18,14 +18,19 @@ type hostResponse struct {
 	Hostname string `json:"hostname"`
 }
 
+type envResponse struct {
+	EnvVars []envVar `json:"envVars"`
+}
+
 type SimpleHttpService struct {
 	Router *mux.Router
 }
 
-func (service *SimpleHttpService) Init() {
+func (service *SimpleHttpService) Init(getEnvVars providesEnvVariables) {
 	service.Router = mux.NewRouter()
 	service.Router.HandleFunc("/health", healthHandler).Methods("GET")
 	service.Router.HandleFunc("/host", hostHandler).Methods("GET")
+	service.Router.HandleFunc("/env", envHandler(getEnvVars)).Methods("GET")
 }
 
 func (service *SimpleHttpService) run(addr string) {
@@ -36,7 +41,7 @@ func (service *SimpleHttpService) run(addr string) {
 
 func main() {
 	service := SimpleHttpService{}
-	service.Init()
+	service.Init(getEnvVarsFromEnvironment)
 	service.run(":30000")
 }
 
@@ -49,4 +54,12 @@ func hostHandler(w http.ResponseWriter, r *http.Request) {
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	response := healthResponse{"OK"}
 	json.NewEncoder(w).Encode(response)
+}
+
+func envHandler(getEnvVars providesEnvVariables) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		envVars := readEnvVars(getEnvVars)
+		response := envResponse{envVars}
+		json.NewEncoder(w).Encode(response)
+	}
 }
