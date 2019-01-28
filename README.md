@@ -18,7 +18,7 @@ minikube start --vm-driver=virtualbox
 
 This command creates a VM and starts a sinlge node Kubernetes cluster. 
 
-## Making Docker Images Available In Minikube
+## Making Docker Images Available in Minikube
 
 Currently, I don't push Docker images to a public repository. Instead I
 configure the `docker` command to use Docker on the Minicube VM to build an
@@ -30,4 +30,14 @@ eval $(minikube docker-env)
 
 After running this command all docker images build are available in Minikube
 and can be used in pod specifications for example.
+
+## Open a Shell in a Docker Container
+
+Sometimes it is useful to open a shell in a Docker container to test something.
+I use the `shell-demo` pod provided by the Kubernetes project. 
+
+```bash
+kubectl create -f https://k8s.io/examples/application/shell-demo.yaml
+```
+
 
