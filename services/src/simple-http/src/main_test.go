@@ -9,14 +9,11 @@ import (
 	"testing"
 )
 
-func getFakeEnvVars() []string {
-	return fakeEnvVars
-}
-
 func initServiceAndCall(req *http.Request) *httptest.ResponseRecorder {
 	responseRecorder := httptest.NewRecorder()
+	envLoader := EnvLoader{fakeEnvVars}
 	service := SimpleHttpService{}
-	service.Init(getFakeEnvVars)
+	service.Init(&envLoader)
 	service.Router.ServeHTTP(responseRecorder, req)
 	return responseRecorder
 }

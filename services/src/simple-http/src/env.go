@@ -10,12 +10,13 @@ type envVar struct {
 	Value string `json:"value"`
 }
 
-type providesEnvVariables func() []string
+type EnvLoader struct {
+	envVarsFromEnvironment []string
+}
 
-func readEnvVars(p providesEnvVariables) []envVar {
-
+func (el *EnvLoader) readEnvVars() []envVar {
 	var envVars = []envVar{}
-	for _, fromEnv := range p() {
+	for _, fromEnv := range el.envVarsFromEnvironment {
 		keyAndValue := strings.Split(fromEnv, "=")
 		currentEnvVar := envVar{keyAndValue[0], keyAndValue[1]}
 		envVars = append(envVars, currentEnvVar)
@@ -24,6 +25,8 @@ func readEnvVars(p providesEnvVariables) []envVar {
 	return envVars
 }
 
-func getEnvVarsFromEnvironment() []string {
-	return os.Environ()
+func NewEnvLoader() *EnvLoader {
+	envVarsFromEnvironment := os.Environ()
+	newInstance := EnvLoader{envVarsFromEnvironment}
+	return &newInstance
 }

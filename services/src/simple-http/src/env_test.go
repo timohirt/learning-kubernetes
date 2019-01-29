@@ -5,19 +5,13 @@ import (
 	"testing"
 )
 
+var noEnvVars = []string{}
 var fakeEnvVars = []string{"SERVICE_NAME=simple-http"}
 var expectedEnvVar = envVar{"SERVICE_NAME", "simple-http"}
 
-func provideFakeEnvVars() []string {
-	return fakeEnvVars
-}
-
-func noEnvVars() []string {
-	return []string{}
-}
-
 func TestReadEnvVarsWhenThereAreNone(t *testing.T) {
-	envVars := readEnvVars(noEnvVars)
+	envLoader := EnvLoader{noEnvVars}
+	envVars := envLoader.readEnvVars()
 
 	if len(envVars) != 0 {
 		t.Error("No EnvVars were expected, but there were some")
@@ -25,7 +19,8 @@ func TestReadEnvVarsWhenThereAreNone(t *testing.T) {
 }
 
 func TestReadEnvVars(t *testing.T) {
-	envVars := readEnvVars(provideFakeEnvVars)
+	envLoader := EnvLoader{fakeEnvVars}
+	envVars := envLoader.readEnvVars()
 
 	actualEnvVar := envVars[0]
 	if len(envVars) != 1 || !reflect.DeepEqual(actualEnvVar, expectedEnvVar) {
