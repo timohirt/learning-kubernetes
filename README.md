@@ -50,7 +50,10 @@ Sometimes it is useful to open a shell in a Docker container to test something.
 I use the `shell-demo` pod provided by the Kubernetes project. 
 
 ```bash
-kubectl create -f https://k8s.io/examples/application/shell-demo.yaml
+$ kubectl create -f https://k8s.io/examples/application/shell-demo.yaml
+$ kubectl exec -it shell-demo -- bash
+root@shell-demo:/#
 ```
+
 
 
