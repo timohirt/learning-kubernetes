@@ -13,10 +13,23 @@ I primarily use [Minikube](https://kubernetes.io/docs/setup/minikube/) on my
 MacBook. It is very easy to get a Kubernetes cluster up and running with VirtualBox.
 
 ```
-minikube start --vm-driver=virtualbox
+$ minikube start --vm-driver=virtualbox
 ```
 
 This command creates a VM and starts a sinlge node Kubernetes cluster. 
+
+### Working with Swagger UI
+
+Swagger UI is a great tool browse the API. Minikube can be configured to
+enable it in the Kubernetes cluster.
+
+```bash
+$ minikube start --extra-config=apiserver.enable-swagger-ui=true
+kubectl proxy --port=8080
+```
+
+Now open your browser and navigate to
+[http://localhost:8080/swagger-ui/](http://localhost:8080/swagger-ui/).
 
 ## Making Docker Images Available in Minikube
 
@@ -25,7 +38,7 @@ configure the `docker` command to use Docker on the Minicube VM to build an
 image.
 
 ```bash
-eval $(minikube docker-env)
+$ eval $(minikube docker-env)
 ```
 
 After running this command all docker images build are available in Minikube
