@@ -1,10 +1,10 @@
-package cmd_test
+package certs_test
 
 import (
 	"bytes"
 	"crypto/rsa"
 	"io/ioutil"
-	"kthw/cmd"
+	"kthw/certs"
 	"log"
 	"testing"
 
@@ -85,8 +85,8 @@ func TestInitCANotOverrideExistingPublicKey(t *testing.T) {
 	}
 }
 
-func helperCreateDefaultCACerts(t *testing.T) *cmd.CACerts {
-	defaultCaCerts := cmd.DefaultCACerts()
+func helperCreateDefaultCACerts(t *testing.T) *certs.CACerts {
+	defaultCaCerts := certs.DefaultCACerts()
 	tempDirName, err := ioutil.TempDir("", "InitCA")
 	helperFailIfErr(t, "Error creating temp dir: %s", err)
 
