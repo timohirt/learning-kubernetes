@@ -5,3 +5,5 @@
 **/pkg
 **/golang.org
 **/github.com
+**/.DS_Store
+**/vendor/*
