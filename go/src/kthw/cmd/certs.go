@@ -16,9 +16,15 @@ import (
 type CACerts struct {
 	CAKeySize int
 	CABaseDir string
-	CAConf    *csr.CAConfig
-	CACsr     *csr.CertificateRequest
+	cACsr     *csr.CertificateRequest
+	cAConf    *csr.CAConfig
 	CA        *CA
+}
+
+// CA holds the certificates used to generate SSL certificates.
+type CA struct {
+	CertBytes []byte
+	KeyBytes  []byte
 }
 
 // CNPrivateKeyFile returns the path to CA private key PEM file.
@@ -34,8 +40,8 @@ func DefaultCACerts() *CACerts {
 	return &CACerts{
 		CAKeySize: keySize,
 		CABaseDir: "ca",
-		CAConf:    caConf,
-		CACsr: &csr.CertificateRequest{
+		cAConf:    caConf,
+		cACsr: &csr.CertificateRequest{
 			CN:         "Kubernetes",
 			CA:         caConf,
 			KeyRequest: &csr.BasicKeyRequest{A: "rsa", S: keySize},
@@ -51,14 +57,8 @@ func certName(o string) csr.Name {
 		ST: "RLP"}
 }
 
-// CA holds the certificates used to generate SSL certificates.
-type CA struct {
-	CertBytes []byte
-	KeyBytes  []byte
-}
-
 func (c *CACerts) generateCA() error {
-	certBytes, _, keyBytes, err := initca.New(c.CACsr)
+	certBytes, _, keyBytes, err := initca.New(c.cACsr)
 
 	if err != nil {
 		return fmt.Errorf("Error generating CA certs: %s", err)
