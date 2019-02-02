@@ -5,14 +5,13 @@ import (
 	"crypto/rsa"
 	"io/ioutil"
 	"kthw/certs"
-	"log"
 	"testing"
 
 	"github.com/cloudflare/cfssl/helpers"
 )
 
 func TestInitCA(t *testing.T) {
-	defaultCaCerts := helperCreateDefaultCACerts(t)
+	defaultCaCerts, _ := helperCreateDefaultCACerts(t)
 	err := defaultCaCerts.InitCa()
 	helperFailIfErr(t, "Error while generating CA: %s", err)
 
@@ -41,7 +40,7 @@ func TestInitCA(t *testing.T) {
 }
 
 func TestInitCACreatedFiles(t *testing.T) {
-	defaultCaCerts := helperCreateDefaultCACerts(t)
+	defaultCaCerts, _ := helperCreateDefaultCACerts(t)
 	err := defaultCaCerts.InitCa()
 	helperFailIfErr(t, "Error while generating CA: %s", err)
 
@@ -61,7 +60,7 @@ func TestInitCACreatedFiles(t *testing.T) {
 }
 
 func TestInitCANotOverrideExistingPrivateKey(t *testing.T) {
-	defaultCaCerts := helperCreateDefaultCACerts(t)
+	defaultCaCerts, _ := helperCreateDefaultCACerts(t)
 
 	err := helperCreateFile(defaultCaCerts.CNPrivateKeyFile())
 	if err != nil {
@@ -75,7 +74,7 @@ func TestInitCANotOverrideExistingPrivateKey(t *testing.T) {
 }
 
 func TestInitCANotOverrideExistingPublicKey(t *testing.T) {
-	defaultCaCerts := helperCreateDefaultCACerts(t)
+	defaultCaCerts, _ := helperCreateDefaultCACerts(t)
 
 	helperCreateFile(defaultCaCerts.CNPublicKeyFile())
 
@@ -85,13 +84,34 @@ func TestInitCANotOverrideExistingPublicKey(t *testing.T) {
 	}
 }
 
-func helperCreateDefaultCACerts(t *testing.T) *certs.CACerts {
+func TestLoadCA(t *testing.T) {
+	defaultCaCerts, tempDirName := helperCreateDefaultCACerts(t)
+	defaultCaCerts.InitCa()
+
+	loadedCaCerts, _ := helperCreateDefaultCACerts(t)
+	loadedCaCerts.CABaseDir = tempDirName
+	loadedCaCerts.LoadCA()
+
+	if loadedCaCerts.CA == nil {
+		t.Fatal("CA not loaded yet")
+	}
+
+	if !bytes.Equal(defaultCaCerts.CA.KeyBytes, loadedCaCerts.CA.KeyBytes) {
+		t.Fatal("Private key generated differs from private key loaded")
+	}
+
+	if !bytes.Equal(defaultCaCerts.CA.CertBytes, loadedCaCerts.CA.CertBytes) {
+		t.Fatal("Public key generated differs from private key loaded")
+	}
+}
+
+func helperCreateDefaultCACerts(t *testing.T) (*certs.CACerts, string) {
 	defaultCaCerts := certs.DefaultCACerts()
 	tempDirName, err := ioutil.TempDir("", "InitCA")
 	helperFailIfErr(t, "Error creating temp dir: %s", err)
 
 	defaultCaCerts.CABaseDir = tempDirName
-	return defaultCaCerts
+	return defaultCaCerts, tempDirName
 }
 
 func helperReadPEM(file string) ([]byte, error) {
@@ -99,10 +119,8 @@ func helperReadPEM(file string) ([]byte, error) {
 }
 
 func helperCreateFile(file string) error {
-	log.Printf("Dummy file: %s", file)
 	var irrelevantContent [20]byte
 	copy(irrelevantContent[:], "irrelevant")
-
 	return ioutil.WriteFile(file, irrelevantContent[:], 0644)
 }
 

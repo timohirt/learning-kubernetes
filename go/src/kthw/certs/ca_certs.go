@@ -3,7 +3,6 @@ package certs
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 
@@ -78,11 +77,9 @@ func (c *CACerts) ensureDirectoryExists(dir string) error {
 
 func (c *CACerts) writeToFile(cert []byte, file string) error {
 	var err error
-	log.Printf("File: %s", file)
 	if _, statErr := os.Stat(file); statErr == nil {
 		err = fmt.Errorf("Could not write certificate to already existing file %s", file)
 	} else {
-		log.Printf("Writing file")
 		err = ioutil.WriteFile(file, cert, 0644)
 	}
 	return err
@@ -111,6 +108,15 @@ func (c *CACerts) InitCa() error {
 }
 
 // LoadCA loads private and public keys of CA from files.
-func (c *CACerts) LoadCA() (*CACerts, error) {
-	return nil, nil
+func (c *CACerts) LoadCA() error {
+	keyBytes, err := ioutil.ReadFile(c.CNPrivateKeyFile())
+	if err != nil {
+		return fmt.Errorf("Error reading private key file '%s': %s", c.CNPrivateKeyFile(), err)
+	}
+	certBytes, err := ioutil.ReadFile(c.CNPublicKeyFile())
+	if err != nil {
+		return fmt.Errorf("Error reading public key file '%s': %s", c.CNPublicKeyFile(), err)
+	}
+	c.CA = &CA{KeyBytes: keyBytes, CertBytes: certBytes}
+	return nil
 }
