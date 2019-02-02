@@ -77,11 +77,16 @@ func (c *CACerts) ensureDirectoryExists(dir string) error {
 	return nil
 }
 
-func (c *CACerts) writeToFileOrDie(cert []byte, file string) {
-	err := ioutil.WriteFile(file, cert, 0644)
-	if err != nil {
-		panic(err)
+func (c *CACerts) writeToFile(cert []byte, file string) error {
+	var err error
+	log.Printf("File: %s", file)
+	if _, statErr := os.Stat(file); statErr == nil {
+		err = fmt.Errorf("Could not write certificate to already existing file %s", file)
+	} else {
+		log.Printf("Writing file")
+		err = ioutil.WriteFile(file, cert, 0644)
 	}
+	return err
 }
 
 // InitCa generates the CA public and private key and stores both in PEM
@@ -93,10 +98,22 @@ func (c *CACerts) InitCa() error {
 		return fmt.Errorf("Error while ensuring CA directories: %s", err)
 	}
 
-	c.writeToFileOrDie(c.CA.KeyBytes, c.CNPrivateKeyFile())
-	c.writeToFileOrDie(c.CA.CertBytes, c.CNPublicKeyFile())
+	err = c.writeToFile(c.CA.KeyBytes, c.CNPrivateKeyFile())
+	if err != nil {
+		return fmt.Errorf("Writing CA private key to file failed: %s", err)
+	}
+
+	err = c.writeToFile(c.CA.CertBytes, c.CNPublicKeyFile())
+	if err != nil {
+		return fmt.Errorf("Writing CA private key to file failed: %s", err)
+	}
 
 	return nil
+}
+
+// LoadCA loads private and public keys of CA from files.
+func (c *CACerts) LoadCA() (*CACerts, error) {
+	return nil, nil
 }
 
 var certsCommand = &cobra.Command{Use: "certs"}

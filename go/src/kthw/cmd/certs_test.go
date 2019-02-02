@@ -5,13 +5,14 @@ import (
 	"crypto/rsa"
 	"io/ioutil"
 	"kthw/cmd"
+	"log"
 	"testing"
 
 	"github.com/cloudflare/cfssl/helpers"
 )
 
 func TestInitCA(t *testing.T) {
-	defaultCaCerts, _ := helperCreateDefaultCACerts(t)
+	defaultCaCerts := helperCreateDefaultCACerts(t)
 	err := defaultCaCerts.InitCa()
 	helperFailIfErr(t, "Error while generating CA: %s", err)
 
@@ -40,7 +41,7 @@ func TestInitCA(t *testing.T) {
 }
 
 func TestInitCACreatedFiles(t *testing.T) {
-	defaultCaCerts, _ := helperCreateDefaultCACerts(t)
+	defaultCaCerts := helperCreateDefaultCACerts(t)
 	err := defaultCaCerts.InitCa()
 	helperFailIfErr(t, "Error while generating CA: %s", err)
 
@@ -59,17 +60,50 @@ func TestInitCACreatedFiles(t *testing.T) {
 	}
 }
 
-func helperReadPEM(file string) ([]byte, error) {
-	return ioutil.ReadFile(file)
+func TestInitCANotOverrideExistingPrivateKey(t *testing.T) {
+	defaultCaCerts := helperCreateDefaultCACerts(t)
+
+	err := helperCreateFile(defaultCaCerts.CNPrivateKeyFile())
+	if err != nil {
+		t.Fatalf("Error setting up file for test %s", defaultCaCerts.CNPrivateKeyFile())
+	}
+
+	err = defaultCaCerts.InitCa()
+	if err == nil {
+		t.Fatalf("Existing private key file in output directory overridden!")
+	}
 }
 
-func helperCreateDefaultCACerts(t *testing.T) (*cmd.CACerts, string) {
+func TestInitCANotOverrideExistingPublicKey(t *testing.T) {
+	defaultCaCerts := helperCreateDefaultCACerts(t)
+
+	helperCreateFile(defaultCaCerts.CNPublicKeyFile())
+
+	err := defaultCaCerts.InitCa()
+	if err == nil {
+		t.Fatalf("Existing public key file in output directory overridden!")
+	}
+}
+
+func helperCreateDefaultCACerts(t *testing.T) *cmd.CACerts {
 	defaultCaCerts := cmd.DefaultCACerts()
 	tempDirName, err := ioutil.TempDir("", "InitCA")
 	helperFailIfErr(t, "Error creating temp dir: %s", err)
 
 	defaultCaCerts.CABaseDir = tempDirName
-	return defaultCaCerts, tempDirName
+	return defaultCaCerts
+}
+
+func helperReadPEM(file string) ([]byte, error) {
+	return ioutil.ReadFile(file)
+}
+
+func helperCreateFile(file string) error {
+	log.Printf("Dummy file: %s", file)
+	var irrelevantContent [20]byte
+	copy(irrelevantContent[:], "irrelevant")
+
+	return ioutil.WriteFile(file, irrelevantContent[:], 0644)
 }
 
 func helperFailIfErr(t *testing.T, message string, err error) {
