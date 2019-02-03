@@ -129,3 +129,9 @@ func helperFailIfErr(t *testing.T, message string, err error) {
 		t.Fatalf(message, err)
 	}
 }
+
+func helperEnsureCaCertsInitialized(t *testing.T, caCerts *certs.CACerts) {
+	if caCerts == nil || caCerts.CA == nil || caCerts.CA.KeyBytes == nil || caCerts.CA.CertBytes == nil {
+		t.Fatal("CACerts not initialized")
+	}
+}

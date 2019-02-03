@@ -3,7 +3,6 @@ package certs
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path"
 
 	"github.com/cloudflare/cfssl/csr"
@@ -26,33 +25,23 @@ type CA struct {
 }
 
 // CNPrivateKeyFile returns the path to CA private key PEM file.
-func (c *CACerts) CNPrivateKeyFile() string { return path.Join(c.CABaseDir, "ca-key.pem") }
+func (c *CACerts) CNPrivateKeyFile() string { return path.Join(c.CABaseDir, caKeyFileName) }
 
 // CNPublicKeyFile returns the path to CA private key PEM file.
-func (c *CACerts) CNPublicKeyFile() string { return path.Join(c.CABaseDir, "ca.pem") }
+func (c *CACerts) CNPublicKeyFile() string { return path.Join(c.CABaseDir, caCertFileName) }
 
 // DefaultCACerts initializes Certs with default parameters.
 func DefaultCACerts() *CACerts {
-	caConf := &csr.CAConfig{PathLength: 0, PathLenZero: true, Expiry: "8760h"}
-	keySize := 2048
+	caConf := &csr.CAConfig{PathLength: 0, PathLenZero: true, Expiry: signingExpiry}
 	return &CACerts{
 		CAKeySize: keySize,
 		CABaseDir: "ca",
 		cAConf:    caConf,
 		cACsr: &csr.CertificateRequest{
-			CN:         "Kubernetes",
+			CN:         caCN,
 			CA:         caConf,
-			KeyRequest: &csr.BasicKeyRequest{A: "rsa", S: keySize},
-			Names:      []csr.Name{certName("Kubernetes")}}}
-}
-
-func certName(o string) csr.Name {
-	return csr.Name{
-		C:  "DE",
-		L:  "Mainz",
-		O:  o,
-		OU: "Learning Kubernetes",
-		ST: "RLP"}
+			KeyRequest: &csr.BasicKeyRequest{A: keyAlgo, S: keySize},
+			Names:      []csr.Name{certName(caCN)}}}
 }
 
 func (c *CACerts) generateCA() error {
@@ -65,41 +54,21 @@ func (c *CACerts) generateCA() error {
 	return nil
 }
 
-func (c *CACerts) ensureDirectoryExists(dir string) error {
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		err = os.MkdirAll(dir, 0755)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (c *CACerts) writeToFile(cert []byte, file string) error {
-	var err error
-	if _, statErr := os.Stat(file); statErr == nil {
-		err = fmt.Errorf("Could not write certificate to already existing file %s", file)
-	} else {
-		err = ioutil.WriteFile(file, cert, 0644)
-	}
-	return err
-}
-
 // InitCa generates the CA public and private key and stores both in PEM
 // format in directory 'ca' relative to working directory.
 func (c *CACerts) InitCa() error {
 	c.generateCA()
-	err := c.ensureDirectoryExists(c.CABaseDir)
+	err := ensureDirectoryExists(c.CABaseDir)
 	if err != nil {
 		return fmt.Errorf("Error while ensuring CA directories: %s", err)
 	}
 
-	err = c.writeToFile(c.CA.KeyBytes, c.CNPrivateKeyFile())
+	err = writeToFile(c.CA.KeyBytes, c.CNPrivateKeyFile())
 	if err != nil {
 		return fmt.Errorf("Writing CA private key to file failed: %s", err)
 	}
 
-	err = c.writeToFile(c.CA.CertBytes, c.CNPublicKeyFile())
+	err = writeToFile(c.CA.CertBytes, c.CNPublicKeyFile())
 	if err != nil {
 		return fmt.Errorf("Writing CA private key to file failed: %s", err)
 	}
@@ -118,5 +87,6 @@ func (c *CACerts) LoadCA() error {
 		return fmt.Errorf("Error reading public key file '%s': %s", c.CNPublicKeyFile(), err)
 	}
 	c.CA = &CA{KeyBytes: keyBytes, CertBytes: certBytes}
+
 	return nil
 }

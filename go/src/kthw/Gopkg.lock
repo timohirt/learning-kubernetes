@@ -2,11 +2,15 @@
 
 
 [[projects]]
-  digest = "1:742890ab4bf0fd5346b79dfad96362117c6b28e3624491b399c6fe1f1e2869fe"
+  digest = "1:17b63a2b524fb1dac10e8030eced8915f5284c89f154286dc5dac493481c1b42"
   name = "github.com/cloudflare/cfssl"
   packages = [
+    "api",
+    "api/client",
     "auth",
     "certdb",
+    "cli",
+    "cli/genkey",
     "config",
     "crypto/pkcs7",
     "csr",
@@ -19,6 +23,8 @@
     "ocsp/config",
     "signer",
     "signer/local",
+    "signer/remote",
+    "signer/universal",
   ]
   pruneopts = "UT"
   revision = "5d63dbd981b5c408effbb58c442d54761ff94fbd"
@@ -126,9 +132,13 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/cloudflare/cfssl/cli/genkey",
+    "github.com/cloudflare/cfssl/config",
     "github.com/cloudflare/cfssl/csr",
     "github.com/cloudflare/cfssl/helpers",
     "github.com/cloudflare/cfssl/initca",
+    "github.com/cloudflare/cfssl/signer",
+    "github.com/cloudflare/cfssl/signer/local",
     "github.com/hetznercloud/hcloud-go/hcloud",
     "github.com/spf13/cobra",
   ]
