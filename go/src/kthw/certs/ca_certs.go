@@ -44,6 +44,17 @@ func DefaultCACerts() *CACerts {
 			Names:      []csr.Name{certName(caCN)}}}
 }
 
+// LoadCACerts creats a CACerts and load the certificates from disk.
+// InitCA must be called previously.
+func LoadCACerts() (*CACerts, error) {
+	caCerts := DefaultCACerts()
+	err := caCerts.LoadCA()
+	if err != nil {
+		return nil, fmt.Errorf("Error while loading CA from disk. Did you call InitCA before? %s", err)
+	}
+	return caCerts, nil
+}
+
 func (c *CACerts) generateCA() error {
 	certBytes, _, keyBytes, err := initca.New(c.cACsr)
 

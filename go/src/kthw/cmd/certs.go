@@ -9,7 +9,8 @@ import (
 
 var certsCommand = &cobra.Command{Use: "certs"}
 
-var initCACommand = &cobra.Command{Use: "init-ca",
+var initCACommand = &cobra.Command{
+	Use:   "init-ca",
 	Short: "Generates CA public and private key",
 	Run: func(cmd *cobra.Command, args []string) {
 		caCerts := certs.DefaultCACerts()
@@ -21,7 +22,27 @@ var initCACommand = &cobra.Command{Use: "init-ca",
 		}
 	}}
 
+var genAdminCertificateCommand = &cobra.Command{
+	Use:   "gen-admin-cert",
+	Short: "Generates admin certificate",
+	Run: func(cmd *cobra.Command, args []string) {
+		caCerts, err := certs.LoadCACerts()
+		if err != nil {
+			log.Fatal(err)
+		}
+		certGenerator, err := certs.NewCertGenerator(caCerts)
+		if err != nil {
+			log.Fatalf("Error while generating admin cert: %s", err)
+		}
+		adminCert, err := certGenerator.GenAdminClientCertificate()
+		if err != nil {
+			log.Fatalf("Error while generating admin cert: %s", err)
+		}
+		adminCert.WriteCert()
+	}}
+
 func init() {
 	certsCommand.AddCommand(initCACommand)
+	certsCommand.AddCommand(genAdminCertificateCommand)
 	rootCmd.AddCommand(certsCommand)
 }

@@ -2,6 +2,7 @@ package certs_test
 
 import (
 	"kthw/certs"
+	"path"
 	"testing"
 )
 
@@ -19,7 +20,15 @@ func TestCertGeneratorGenAdminClientCert(t *testing.T) {
 		t.Fatal("Admin client private key not generated")
 	}
 
+	if adminClientCert.PrivateKeyPath() != path.Join(adminClientCert.BaseDir, "admin-key.pem") {
+		t.Fatalf("Private key path wrong. Should be '../admin-key.pem'.")
+	}
+
 	if adminClientCert.PublicKeyBytes == nil {
 		t.Fatal("Admin client pubic key not generated")
+	}
+
+	if adminClientCert.PublicKeyPath() != path.Join(adminClientCert.BaseDir, "admin.pem") {
+		t.Fatalf("Public key path wrong. Should be '../admin.pem'.")
 	}
 }

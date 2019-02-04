@@ -18,7 +18,7 @@ const (
 	caKeyFileName  = "ca-key.pem"
 	caCertFileName = "ca.pem"
 
-	certsBaseDir = "certs"
+	certsBaseDir = "client-server-certs"
 
 	signingProfile = "kubernetes"
 	signingExpiry  = "8760h"

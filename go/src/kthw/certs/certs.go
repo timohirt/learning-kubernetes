@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"crypto/x509"
 	"fmt"
+	"path"
 	"time"
 
 	"github.com/cloudflare/cfssl/cli/genkey"
@@ -14,15 +15,46 @@ import (
 	"github.com/cloudflare/cfssl/signer/local"
 )
 
+// WriteCert defines methods implemented by all cert to writeit to disk
+type WriteCert interface {
+	Write() error
+}
+
+// CertPaths defines accessors to get public and private key file paths
+type CertPaths interface {
+	PrivateKeyPath() string
+	PublicKeyPath() string
+}
+
 // Cert has public and private keys, and base directory where both are stored
 type cert struct {
 	BaseDir         string
 	PrivateKeyBytes []byte
 	PublicKeyBytes  []byte
+	CertPaths
 }
 
 // AdminClientCert has admin client public and private
 type AdminClientCert cert
+
+// PrivateKeyPath gets the path to the admin private key file
+func (a *AdminClientCert) PrivateKeyPath() string { return path.Join(a.BaseDir, "admin-key.pem") }
+
+// PublicKeyPath gets the path to the admin private key file
+func (a *AdminClientCert) PublicKeyPath() string { return path.Join(a.BaseDir, "admin.pem") }
+
+// WriteCert writes public and private key to disk. Put files into BaseDir
+func (a *AdminClientCert) WriteCert() error {
+	err := ensureDirectoryExists(a.BaseDir)
+	if err != nil {
+		return err
+	}
+	err = writeToFile(a.PrivateKeyBytes, a.PrivateKeyPath())
+	if err != nil {
+		return err
+	}
+	return writeToFile(a.PrivateKeyBytes, a.PublicKeyPath())
+}
 
 // CertGenerator generates certificates using a CA
 type CertGenerator struct {
