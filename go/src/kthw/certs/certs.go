@@ -75,16 +75,21 @@ func (c *CertGenerator) GenAdminClientCertificate() (*AdminClientCert, error) {
 		CN:         adminClientCN,
 		KeyRequest: &csr.BasicKeyRequest{A: keyAlgo, S: keySize},
 		Names:      []csr.Name{certName(adminClientO)}}
+	privateKeyBytes, publicKeyBytes, _ := c.genPrivateAndPublicKey(req, noHostname)
+	adminClientCert := &AdminClientCert{BaseDir: certsBaseDir, PrivateKeyBytes: privateKeyBytes, PublicKeyBytes: publicKeyBytes}
+	return adminClientCert, nil
+}
+
+func (c *CertGenerator) genPrivateAndPublicKey(req *csr.CertificateRequest, hostname string) (privateKeyBytes []byte, publicKeyBytes []byte, err error) {
 	csrBytes, privateKeyBytes, err := c.genPrivateKey(req)
 	if err != nil {
-		return nil, err
+		return nil, nil, fmt.Errorf("Error while generating private key: %s", err)
 	}
-	cert, err := c.genPublicKey(csrBytes, privateKeyBytes, noHostname)
+	publicKeyBytes, err = c.genPublicKey(csrBytes, privateKeyBytes, noHostname)
 	if err != nil {
-		return nil, fmt.Errorf("Error while generating public key: %s", err)
+		return nil, nil, fmt.Errorf("Error while generating public key: %s", err)
 	}
-	adminClientCert := &AdminClientCert{BaseDir: certsBaseDir, PrivateKeyBytes: privateKeyBytes, PublicKeyBytes: cert}
-	return adminClientCert, nil
+	return privateKeyBytes, publicKeyBytes, nil
 }
 
 func (c *CertGenerator) genPrivateKey(req *csr.CertificateRequest) (csrBytes []byte, key []byte, err error) {
