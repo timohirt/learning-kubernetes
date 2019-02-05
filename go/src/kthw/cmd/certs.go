@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var certsCommand = &cobra.Command{Use: "certs"}
+var certsCommand = &cobra.Command{Use: "certs", Short: "Create CA, Server and Client certificates"}
 
 var initCACommand = &cobra.Command{
 	Use:   "init-ca",
@@ -41,8 +41,8 @@ var genAdminCertificateCommand = &cobra.Command{
 		adminCert.WriteCert()
 	}}
 
-func init() {
+func certsCommands() *cobra.Command {
 	certsCommand.AddCommand(initCACommand)
 	certsCommand.AddCommand(genAdminCertificateCommand)
-	rootCmd.AddCommand(certsCommand)
+	return certsCommand
 }
