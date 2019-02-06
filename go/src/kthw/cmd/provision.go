@@ -17,7 +17,7 @@ var provisionCommand = &cobra.Command{
 	Short: "Commands for provisioning servers"}
 
 var createServerCommand = &cobra.Command{
-	Use:   "create <name>",
+	Use:   "server <name>",
 	Short: "Creates a server previously added to the config",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
