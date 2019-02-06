@@ -2,7 +2,9 @@ package hcloudclient
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
@@ -36,7 +38,7 @@ type CreateServerResults struct {
 	DNSName      string
 }
 
-// CreateServer creates a server using hcloud API and the provided options
+// Create creates a server using hcloud API and the provided options
 func (hc *HCloudClient) Create(opts hcloud.ServerCreateOpts) *CreateServerResults {
 	serverCreateResult, _, err := hc.client.Server.Create(hc.context, opts)
 	hc.ensureNoError(err)
@@ -62,6 +64,7 @@ func (hc *HCloudClient) CreateSSHKey(opts hcloud.SSHKeyCreateOpts) *CreateSSHKey
 
 func (hc *HCloudClient) ensureNoError(err error) {
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }

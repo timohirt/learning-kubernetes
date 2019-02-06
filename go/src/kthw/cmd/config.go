@@ -5,7 +5,6 @@ import (
 	"kthw/cmd/common"
 	"kthw/cmd/server"
 	"kthw/cmd/sshkey"
-	"log"
 
 	"github.com/spf13/cobra"
 	viper "github.com/spf13/viper"
@@ -40,15 +39,12 @@ var addSSHKeyCommand = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		name := args[0]
 		file := args[1]
-		err := sshkey.AddSSHPublicKeyToConfig(name, file)
-		if err != nil {
-			log.Panicf("Error while adding SSH key: %s", err)
-		}
 
+		err := sshkey.AddSSHPublicKeyToConfig(name, file)
+		common.WhenErrPrintAndExit(err)
 		err = viper.WriteConfig()
-		if err != nil {
-			log.Panicf("Error while writing SSH key to config file: %s", err)
-		}
+		common.WhenErrPrintAndExit(err)
+
 		fmt.Printf("SSH key '%s' successfully added to config.\n", name)
 	}}
 
@@ -58,9 +54,12 @@ var addServerCommand = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		serverName := args[0]
+
 		server.AddServer(serverName)
 		err := viper.WriteConfig()
 		common.WhenErrPrintAndExit(err)
+
+		fmt.Printf("Server %s successfully added to config.\n", serverName)
 	}}
 
 func configCommands() *cobra.Command {

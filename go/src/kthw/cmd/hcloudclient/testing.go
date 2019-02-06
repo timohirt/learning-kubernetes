@@ -11,7 +11,7 @@ type MockHCloudOperations struct {
 	Err                 error
 }
 
-// CreateServer returns createServerResults defiend in MockHCloudOperations
+// Create returns createServerResults defiend in MockHCloudOperations
 func (m *MockHCloudOperations) Create(opts hcloud.ServerCreateOpts) *CreateServerResults {
 	return m.CreateServerResults
 }

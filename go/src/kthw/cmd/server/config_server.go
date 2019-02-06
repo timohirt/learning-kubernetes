@@ -55,6 +55,7 @@ func (sc *Config) ReadFromConfig() error {
 	if sc.Name == "" {
 		return fmt.Errorf("Could not read server from config. Server name not set")
 	}
+	// TODO verify server name exists in config and return error if not
 
 	publicIP := viper.GetString(sc.confPublicIPKey())
 	if publicIP != "" {
@@ -119,6 +120,7 @@ func SetHCloudServerDefaults() {
 func AddServer(serverName string) {
 	sshKey, err := sshkey.ReadSSHPublicKeyFromConf()
 	common.WhenErrPrintAndExit(err)
+	// TODO Ensure sshkey is provisioned
 	serverConf := Config{
 		Name:           serverName,
 		SSHPublicKeyID: sshKey.ID,
