@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"kthw/cmd/common"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -28,7 +29,7 @@ var addSSHKeyCommand = &cobra.Command{
 	}}
 
 func addSSHPublicKey(name string, file string) error {
-	publicSSHKey, err := parseSSHPublicKey(name, file)
+	publicSSHKey, err := common.ParseSSHPublicKey(name, file)
 	if err != nil {
 		return fmt.Errorf("Error while parsing ssh key from file '%s' config: %s", file, err)
 	}

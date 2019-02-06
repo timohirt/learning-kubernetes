@@ -1,4 +1,4 @@
-package cmd
+package common
 
 import (
 	"testing"
@@ -9,25 +9,25 @@ import (
 func TestParseSSHPublicKey(t *testing.T) {
 	name := "my_ssh_key"
 	file := "testdata/id_rsa.pub"
-	SSHPublicKey, err := parseSSHPublicKey(name, file)
+	SSHPublicKey, err := ParseSSHPublicKey(name, file)
 	if err != nil {
 		t.Fatalf("Error while parsing SSH public key: %s", err)
 	}
 
 	expectedPublicKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCySPRQod61J1swABdriGr5m0gB testuser"
-	if SSHPublicKey.publicKey != expectedPublicKey {
-		t.Errorf("Public key from file '%s' differs from expected public key '%s'", SSHPublicKey.publicKey, expectedPublicKey)
+	if SSHPublicKey.PublicKey != expectedPublicKey {
+		t.Errorf("Public key from file '%s' differs from expected public key '%s'", SSHPublicKey.PublicKey, expectedPublicKey)
 	}
 
-	if SSHPublicKey.name != name {
-		t.Errorf("Name of public key from file '%s' differs from expected name '%s'", SSHPublicKey.name, name)
+	if SSHPublicKey.Name != name {
+		t.Errorf("Name of public key from file '%s' differs from expected name '%s'", SSHPublicKey.Name, name)
 	}
 }
 
 func TestWriteSSHPublicKeyToConf(t *testing.T) {
 	viper.Reset()
 
-	key := &SSHPublicKey{publicKey: "key", name: "name"}
+	key := &SSHPublicKey{PublicKey: "key", Name: "name"}
 
 	key.WriteToConfig()
 
@@ -41,7 +41,7 @@ func TestWriteSSHPublicKeyToConf(t *testing.T) {
 		t.Errorf("Name from config '%s' differs from expected name 'name'", nameFromConfig)
 	}
 
-	key.id = 12
+	key.ID = 12
 	key.WriteToConfig()
 
 	keyFromConfig := viper.GetInt(confSSHKeysIDKey)
@@ -55,15 +55,15 @@ func TestReadSSHPublicKeyFromConf(t *testing.T) {
 	viper.Set(confSSHKeysNameKey, "name")
 	viper.Set(confSSHKeysPublicKeyKey, "key")
 
-	key, _ := readSSHPublicKeyFromConf()
-	if key.name != "name" || key.publicKey != "key" {
+	key, _ := ReadSSHPublicKeyFromConf()
+	if key.Name != "name" || key.PublicKey != "key" {
 		t.Error("Could not read public key from conf")
 	}
 
 	viper.Set(confSSHKeysIDKey, 12)
-	key, _ = readSSHPublicKeyFromConf()
+	key, _ = ReadSSHPublicKeyFromConf()
 
-	if key.id != 12 {
+	if key.ID != 12 {
 		t.Error("Error reading ssh key id from config")
 	}
 }

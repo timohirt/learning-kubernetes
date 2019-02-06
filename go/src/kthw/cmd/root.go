@@ -11,6 +11,9 @@ import (
 
 var rootCmd = &cobra.Command{}
 
+// APIToken used to authenticate with Hetzer Cloud API
+var APIToken string
+
 // Execute runs commands child commands
 func Execute() {
 	viper.SetConfigFile(defaultConfigFile)

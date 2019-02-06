@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"kthw/cmd/common"
+	"kthw/cmd/config"
+
 	"github.com/spf13/cobra"
 	viper "github.com/spf13/viper"
 )
@@ -22,14 +25,14 @@ var initConfCommand = &cobra.Command{
 		viper.SetConfigFile(defaultConfigFile)
 		projectName := args[0]
 		viper.Set(ConfProjectNameKey, projectName)
-		SetHCloudServerDefaults()
+		config.SetHCloudServerDefaults()
 		err := viper.WriteConfig()
-		WhenErrPrintAndExit(err)
+		common.WhenErrPrintAndExit(err)
 	}}
 
 func configCommands() *cobra.Command {
 	configCommand.AddCommand(initConfCommand)
-	configCommand.AddCommand(addServerCommand)
+	configCommand.AddCommand(config.AddServerCommand)
 	configCommand.AddCommand(addSSHKeyCommand)
 	return configCommand
 }

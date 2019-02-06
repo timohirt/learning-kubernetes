@@ -1,6 +1,7 @@
-package cmd
+package config
 
 import (
+	"kthw/cmd"
 	"testing"
 
 	viper "github.com/spf13/viper"
@@ -13,7 +14,7 @@ func setupConfig(key SSHPublicKey) {
 
 func TestAddServer(t *testing.T) {
 	viper.Reset()
-	key := ASSHPublicKeyWithID
+	key := cmd.ASSHPublicKeyWithID
 	setupConfig(key)
 	addServer(nil, []string{"controller-1"})
 

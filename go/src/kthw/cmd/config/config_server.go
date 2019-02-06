@@ -1,7 +1,8 @@
-package cmd
+package config
 
 import (
 	"fmt"
+	"kthw/cmd/common"
 
 	"github.com/spf13/cobra"
 	viper "github.com/spf13/viper"
@@ -99,10 +100,11 @@ func (sc *ServerConfig) confRootPasswordKey() string {
 	return fmt.Sprintf("hcloud.server.%s.rootPassword", sc.Name)
 }
 
-func serverConfigFromConfig(serverName string) ServerConfig {
+// ServerConfigFromConfig reads settings of a specific server from config.
+func ServerConfigFromConfig(serverName string) ServerConfig {
 	serverConfig := ServerConfig{Name: serverName}
 	err := serverConfig.ReadFromConfig()
-	WhenErrPrintAndExit(err)
+	common.WhenErrPrintAndExit(err)
 	return serverConfig
 }
 
@@ -114,13 +116,13 @@ func SetHCloudServerDefaults() {
 }
 
 // AddServer uses the first argument as server name and adds this server to the configuration.
-func addServer(cmd *cobra.Command, args []string) {
-	sshKey, err := readSSHPublicKeyFromConf()
-	WhenErrPrintAndExit(err)
+func addServer(_ *cobra.Command, args []string) {
+	sshKey, err := common.ReadSSHPublicKeyFromConf()
+	common.WhenErrPrintAndExit(err)
 	serverName := args[0]
 	serverConf := ServerConfig{
 		Name:           serverName,
-		SSHPublicKeyID: sshKey.id,
+		SSHPublicKeyID: sshKey.ID,
 		ServerType:     viper.GetString(confHCloudDefaultServerTypeKey),
 		ImageName:      viper.GetString(confHCloudDefaultImageNameKey),
 		LocationName:   viper.GetString(confHCloudLocationNameKey),
@@ -128,12 +130,12 @@ func addServer(cmd *cobra.Command, args []string) {
 	serverConf.UpdateConfig()
 }
 
-var addServerCommand = &cobra.Command{
+var AddServerCommand = &cobra.Command{
 	Use:   "add-server <name>",
 	Short: "Adds a new server to the config file.",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		addServer(cmd, args)
 		err := viper.WriteConfig()
-		WhenErrPrintAndExit(err)
+		common.WhenErrPrintAndExit(err)
 	}}

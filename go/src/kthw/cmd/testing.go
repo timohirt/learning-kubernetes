@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"kthw/cmd/common"
 	"kthw/cmd/hcloudclient"
 
 	"github.com/hetznercloud/hcloud-go/hcloud"
@@ -24,10 +25,10 @@ func (m *MockHCloudOperations) CreateSSHKey(opts hcloud.SSHKeyCreateOpts) *hclou
 }
 
 // ASSHPublicKeyWithID fixture to be used in tests
-var ASSHPublicKeyWithID = SSHPublicKey{id: 17, publicKey: "publicKey", name: "name"}
+var ASSHPublicKeyWithID = common.SSHPublicKey{ID: 17, PublicKey: "publicKey", Name: "name"}
 
 // ASSHPublicKeyWithIDInConfig writes key to config in scope and return SSHPublicKey
-func ASSHPublicKeyWithIDInConfig() SSHPublicKey {
+func ASSHPublicKeyWithIDInConfig() common.SSHPublicKey {
 	ASSHPublicKeyWithID.WriteToConfig()
 	return ASSHPublicKeyWithID
 }
