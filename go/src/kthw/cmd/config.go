@@ -30,5 +30,6 @@ var initConfCommand = &cobra.Command{
 func configCommands() *cobra.Command {
 	configCommand.AddCommand(initConfCommand)
 	configCommand.AddCommand(addServerCommand)
+	configCommand.AddCommand(addSSHKeyCommand)
 	return configCommand
 }

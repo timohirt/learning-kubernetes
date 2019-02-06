@@ -9,7 +9,8 @@ import (
 
 // HCloudOperations defines operations to be implemented by HCloudClient
 type HCloudOperations interface {
-	CreateServer(opts hcloud.ServerCreateOpts) (*CreateServerResults, error)
+	CreateServer(opts hcloud.ServerCreateOpts) *CreateServerResults
+	CreateSSHKey(opts hcloud.SSHKeyCreateOpts) *CreateSSHKeyResults
 }
 
 // HCloudClient talks to the hcloud API
@@ -28,21 +29,35 @@ func NewHCloudClient(apiToken string) *HCloudClient {
 	return &HCloudClient{client: client, context: context.Background()}
 }
 
-// CreateServerResults groups data from server
+// CreateServerResults groups returned data from hcloud
 type CreateServerResults struct {
 	PublicIP     string
 	RootPassword string
 	DNSName      string
 }
 
-// Creates a server using hcloud API and the provided options
-func (hc *HCloudClient) CreateServer(opts hcloud.ServerCreateOpts) (*CreateServerResults, error) {
+// CreateServer creates a server using hcloud API and the provided options
+func (hc *HCloudClient) CreateServer(opts hcloud.ServerCreateOpts) *CreateServerResults {
 	serverCreateResult, _, err := hc.client.Server.Create(hc.context, opts)
 	hc.ensureNoError(err)
 	return &CreateServerResults{
 		PublicIP:     serverCreateResult.Server.PublicNet.IPv4.IP.String(),
 		RootPassword: serverCreateResult.RootPassword,
-		DNSName:      serverCreateResult.Server.PublicNet.IPv4.DNSPtr}, nil
+		DNSName:      serverCreateResult.Server.PublicNet.IPv4.DNSPtr}
+}
+
+// CreateSSHKeyResults groups returned data from hcloud
+type CreateSSHKeyResults struct {
+	ID int
+}
+
+// CreateSSHKey creates a SSH key in hcloud
+func (hc *HCloudClient) CreateSSHKey(opts hcloud.SSHKeyCreateOpts) *CreateSSHKeyResults {
+	sshKey, _, err := hc.client.SSHKey.Create(hc.context, opts)
+	hc.ensureNoError(err)
+
+	return &CreateSSHKeyResults{
+		ID: sshKey.ID}
 }
 
 func (hc *HCloudClient) ensureNoError(err error) {

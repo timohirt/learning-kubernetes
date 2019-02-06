@@ -22,12 +22,13 @@ const (
 
 // ServerConfig from config file
 type ServerConfig struct {
-	Name         string
-	ServerType   string
-	ImageName    string
-	LocationName string
-	PublicIP     string
-	RootPassword string
+	Name           string
+	ServerType     string
+	ImageName      string
+	LocationName   string
+	PublicIP       string
+	RootPassword   string
+	SSHPublicKeyID int
 }
 
 // UpdateConfig updates the configuration with the current field values. Changes are not persisted.
@@ -36,6 +37,7 @@ func (sc *ServerConfig) UpdateConfig() {
 	viper.Set(sc.confServerTypeKey(), sc.ServerType)
 	viper.Set(sc.confLocationNameKey(), sc.LocationName)
 	viper.Set(sc.confImageNameKey(), sc.ImageName)
+	viper.Set(sc.confSSKPublicKeyID(), sc.SSHPublicKeyID)
 
 	if sc.PublicIP != "" {
 		viper.Set(sc.confPublicIPKey(), sc.PublicIP)
@@ -62,10 +64,15 @@ func (sc *ServerConfig) ReadFromConfig() error {
 		sc.RootPassword = rootPassword
 	}
 
+	sc.SSHPublicKeyID = viper.GetInt(sc.confSSKPublicKeyID())
 	sc.ServerType = viper.GetString(sc.confServerTypeKey())
 	sc.ImageName = viper.GetString(sc.confImageNameKey())
 	sc.LocationName = viper.GetString(sc.confLocationNameKey())
 	return nil
+}
+
+func (sc *ServerConfig) confSSKPublicKeyID() string {
+	return fmt.Sprintf("hcloud.server.%s.publicKeyId", sc.Name)
 }
 
 func (sc *ServerConfig) confServerNameKey() string {
@@ -107,13 +114,16 @@ func SetHCloudServerDefaults() {
 }
 
 // AddServer uses the first argument as server name and adds this server to the configuration.
-func AddServer(cmd *cobra.Command, args []string) {
+func addServer(cmd *cobra.Command, args []string) {
+	sshKey, err := readSSHPublicKeyFromConf()
+	whenErrPrintAndExit(err)
 	serverName := args[0]
 	serverConf := ServerConfig{
-		Name:         serverName,
-		ServerType:   viper.GetString(confHCloudDefaultServerTypeKey),
-		ImageName:    viper.GetString(confHCloudDefaultImageNameKey),
-		LocationName: viper.GetString(confHCloudLocationNameKey),
+		Name:           serverName,
+		SSHPublicKeyID: sshKey.id,
+		ServerType:     viper.GetString(confHCloudDefaultServerTypeKey),
+		ImageName:      viper.GetString(confHCloudDefaultImageNameKey),
+		LocationName:   viper.GetString(confHCloudLocationNameKey),
 	}
 	serverConf.UpdateConfig()
 }
@@ -123,7 +133,7 @@ var addServerCommand = &cobra.Command{
 	Short: "Adds a new server to the config file.",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		AddServer(cmd, args)
+		addServer(cmd, args)
 		err := viper.WriteConfig()
 		whenErrPrintAndExit(err)
 	}}

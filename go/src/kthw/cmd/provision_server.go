@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
@@ -38,10 +36,16 @@ packages:
 
 // CreateServer creates a server in hcloud using the provided config. Public ip and
 // root password are added to the conf and calling code is assumed to write the configuration.
-func CreateServer(config ServerConfig, client HCloudOperations) (*ServerConfig, error) {
+func createServer(config ServerConfig, client HCloudOperations) (*ServerConfig, error) {
+	sshKeyFromConf, err := readSSHPublicKeyFromConf()
+	if err != nil {
+		return nil, err
+	}
+
 	serverType := &hcloud.ServerType{Name: config.ServerType}
 	image := &hcloud.Image{Name: config.ImageName}
 	location := &hcloud.Location{Name: config.LocationName}
+	sshKey := &hcloud.SSHKey{ID: sshKeyFromConf.id}
 	startAfterCreate := true
 	serverOpts := hcloud.ServerCreateOpts{
 		Name:             config.Name,
@@ -49,15 +53,14 @@ func CreateServer(config ServerConfig, client HCloudOperations) (*ServerConfig, 
 		Image:            image,
 		Location:         location,
 		UserData:         basicCloudInit,
+		SSHKeys:          []*hcloud.SSHKey{sshKey},
 		StartAfterCreate: &startAfterCreate}
 
-	serverCreated, err := client.CreateServer(serverOpts)
-	if err != nil {
-		return nil, fmt.Errorf("Error creating server %s. %s", config.Name, err)
-	}
+	serverCreated := client.CreateServer(serverOpts)
 
 	config.PublicIP = serverCreated.PublicIP
 	config.RootPassword = serverCreated.RootPassword
+	config.SSHPublicKeyID = sshKey.ID
 
 	return &config, nil
 }

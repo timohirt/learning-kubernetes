@@ -1,44 +1,52 @@
-package cmd_test
+package cmd
 
 import (
-	"kthw/cmd"
+	"reflect"
 	"testing"
 
-	"github.com/cloudflare/cfssl/log"
-	"github.com/hetznercloud/hcloud-go/hcloud"
+	viper "github.com/spf13/viper"
 )
 
-type MockHCloudClient struct {
-	createServerResults *cmd.CreateServerResults
-	err                 error
-}
-
-func (m *MockHCloudClient) CreateServer(opts hcloud.ServerCreateOpts) (*cmd.CreateServerResults, error) {
-	log.Info("Client: ", m, " opts: ", opts)
-	return m.createServerResults, m.err
-}
-
-func TestCreateServer(t *testing.T) {
-	createServerResult := &cmd.CreateServerResults{
+func setupTestCreateServer() (*CreateServerResults, *MockHCloudOperations, ServerConfig) {
+	createServerResult := &CreateServerResults{
 		PublicIP:     "10.0.0.1",
 		RootPassword: "Passw0rt",
 		DNSName:      "m1.hetzner.com"}
-	hcloudClient := &MockHCloudClient{
+	hcloudClient := &MockHCloudOperations{
 		createServerResults: createServerResult}
-
-	config := cmd.ServerConfig{
+	config := ServerConfig{
 		Name:         "m1",
 		ServerType:   "cx21",
 		ImageName:    "ubuntu",
 		LocationName: "nbg1"}
+	return createServerResult, hcloudClient, config
+}
 
-	updatedConfig, _ := cmd.CreateServer(config, hcloudClient)
+func TestCreateServer(t *testing.T) {
+	viper.Reset()
+	sshKey := ASSHPublicKeyWithIDInConfig()
+	createServerResult, hcloudClient, serverConfig := setupTestCreateServer()
 
-	config.RootPassword = createServerResult.RootPassword
-	config.PublicIP = createServerResult.PublicIP
-
-	if config != *updatedConfig {
-		t.Errorf("Expected config differs from actual config")
+	updatedConfig, err := createServer(serverConfig, hcloudClient)
+	if err != nil {
+		t.Errorf("Error while creating server: %s", err)
 	}
 
+	serverConfig.RootPassword = createServerResult.RootPassword
+	serverConfig.PublicIP = createServerResult.PublicIP
+	serverConfig.SSHPublicKeyID = sshKey.id
+
+	if !reflect.DeepEqual(serverConfig, *updatedConfig) {
+		t.Errorf("Expected config differs from actual config")
+	}
+}
+
+func TestCreateServerWhenThereIsNoSSHPublicKeyInConfig(t *testing.T) {
+	viper.Reset()
+	_, hcloudClient, serverConfig := setupTestCreateServer()
+
+	_, err := createServer(serverConfig, hcloudClient)
+	if err == nil {
+		t.Errorf("A error should be returned as there is no SSH public key in config")
+	}
 }

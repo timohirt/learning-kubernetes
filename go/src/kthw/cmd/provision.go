@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -17,15 +20,34 @@ var createServerCommand = &cobra.Command{
 		serverName := args[0]
 		serverConfig := serverConfigFromConfig(serverName)
 		hcloudClient := NewHCloudClient(APIToken)
-		updatedConfig, err := CreateServer(serverConfig, hcloudClient)
+		updatedConfig, err := createServer(serverConfig, hcloudClient)
 		whenErrPrintAndExit(err)
 
 		updatedConfig.UpdateConfig()
 		viper.WriteConfig()
 	}}
 
+var createSSHKeysCommand = &cobra.Command{
+	Use:   "ssh-keys",
+	Short: "Reads ssh key from config and creates in in hcloud",
+	Run: func(cmd *cobra.Command, args []string) {
+		key, err := readSSHPublicKeyFromConf()
+		whenErrPrintAndExit(err)
+		if APIToken == "" {
+			fmt.Println("ApiToken not found. Make sure you set the --apitoken flag")
+			os.Exit(1)
+		}
+		hcloudClient := NewHCloudClient(APIToken)
+		updatedConfig := createSSHKey(*key, hcloudClient)
+
+		updatedConfig.WriteToConfig()
+		viper.WriteConfig()
+		fmt.Println("SSH key created at hcloud.")
+	}}
+
 func provisionCommands() *cobra.Command {
-	createServerCommand.Flags().StringVarP(&APIToken, "apiToken", "a", "", "API token for access to hcloud (required)")
+	provisionCommand.PersistentFlags().StringVarP(&APIToken, "apiToken", "a", "", "API token for access to hcloud (required)")
 	provisionCommand.AddCommand(createServerCommand)
+	provisionCommand.AddCommand(createSSHKeysCommand)
 	return provisionCommand
 }
