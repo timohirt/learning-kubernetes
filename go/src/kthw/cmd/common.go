@@ -8,9 +8,10 @@ import (
 // APIToken used to authenticate with Hetzer Cloud API
 var APIToken string
 
-func whenErrPrintAndExit(err error) {
+// WhenErrPrintAndExit when err is not nil, print the error and exit
+func WhenErrPrintAndExit(err error) {
 	if err != nil {
-		fmt.Errorf("%s", err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }

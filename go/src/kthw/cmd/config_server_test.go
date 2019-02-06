@@ -6,7 +6,7 @@ import (
 	viper "github.com/spf13/viper"
 )
 
-func setupConfig(key sshPublicKey) {
+func setupConfig(key SSHPublicKey) {
 	SetHCloudServerDefaults()
 	key.WriteToConfig()
 }

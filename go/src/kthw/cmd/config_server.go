@@ -102,7 +102,7 @@ func (sc *ServerConfig) confRootPasswordKey() string {
 func serverConfigFromConfig(serverName string) ServerConfig {
 	serverConfig := ServerConfig{Name: serverName}
 	err := serverConfig.ReadFromConfig()
-	whenErrPrintAndExit(err)
+	WhenErrPrintAndExit(err)
 	return serverConfig
 }
 
@@ -116,7 +116,7 @@ func SetHCloudServerDefaults() {
 // AddServer uses the first argument as server name and adds this server to the configuration.
 func addServer(cmd *cobra.Command, args []string) {
 	sshKey, err := readSSHPublicKeyFromConf()
-	whenErrPrintAndExit(err)
+	WhenErrPrintAndExit(err)
 	serverName := args[0]
 	serverConf := ServerConfig{
 		Name:           serverName,
@@ -135,5 +135,5 @@ var addServerCommand = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		addServer(cmd, args)
 		err := viper.WriteConfig()
-		whenErrPrintAndExit(err)
+		WhenErrPrintAndExit(err)
 	}}

@@ -7,7 +7,7 @@ import (
 )
 
 // CreateSSHKey creates a SSH key in hcloud
-func createSSHKey(key sshPublicKey, hcloudClient hcloudclient.HCloudOperations) *sshPublicKey {
+func createSSHKey(key SSHPublicKey, hcloudClient hcloudclient.HCloudOperations) *SSHPublicKey {
 	opts := hcloud.SSHKeyCreateOpts{
 		Name:      key.name,
 		PublicKey: key.publicKey}

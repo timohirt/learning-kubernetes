@@ -22,7 +22,7 @@ var createServerCommand = &cobra.Command{
 		serverConfig := serverConfigFromConfig(serverName)
 		hcloudClient := hcloudclient.NewHCloudClient(APIToken)
 		updatedConfig, err := createServer(serverConfig, hcloudClient)
-		whenErrPrintAndExit(err)
+		WhenErrPrintAndExit(err)
 
 		updatedConfig.UpdateConfig()
 		viper.WriteConfig()
@@ -33,7 +33,7 @@ var createSSHKeysCommand = &cobra.Command{
 	Short: "Reads ssh key from config and creates in in hcloud",
 	Run: func(cmd *cobra.Command, args []string) {
 		key, err := readSSHPublicKeyFromConf()
-		whenErrPrintAndExit(err)
+		WhenErrPrintAndExit(err)
 		if APIToken == "" {
 			fmt.Println("ApiToken not found. Make sure you set the --apitoken flag")
 			os.Exit(1)

@@ -24,7 +24,7 @@ var initConfCommand = &cobra.Command{
 		viper.Set(ConfProjectNameKey, projectName)
 		SetHCloudServerDefaults()
 		err := viper.WriteConfig()
-		whenErrPrintAndExit(err)
+		WhenErrPrintAndExit(err)
 	}}
 
 func configCommands() *cobra.Command {

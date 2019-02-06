@@ -11,7 +11,7 @@ func TestProvisionSSHKeys(t *testing.T) {
 	hcloudClient := &MockHCloudOperations{
 		createSSHKeyResults: createSSHKeyResult}
 
-	key := sshPublicKey{publicKey: "key", name: "name"}
+	key := SSHPublicKey{publicKey: "key", name: "name"}
 	updatedKey := createSSHKey(key, hcloudClient)
 
 	key.id = 12

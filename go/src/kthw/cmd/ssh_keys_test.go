@@ -9,25 +9,25 @@ import (
 func TestParseSSHPublicKey(t *testing.T) {
 	name := "my_ssh_key"
 	file := "testdata/id_rsa.pub"
-	sshPublicKey, err := parseSSHPublicKey(name, file)
+	SSHPublicKey, err := parseSSHPublicKey(name, file)
 	if err != nil {
 		t.Fatalf("Error while parsing SSH public key: %s", err)
 	}
 
 	expectedPublicKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCySPRQod61J1swABdriGr5m0gB testuser"
-	if sshPublicKey.publicKey != expectedPublicKey {
-		t.Errorf("Public key from file '%s' differs from expected public key '%s'", sshPublicKey.publicKey, expectedPublicKey)
+	if SSHPublicKey.publicKey != expectedPublicKey {
+		t.Errorf("Public key from file '%s' differs from expected public key '%s'", SSHPublicKey.publicKey, expectedPublicKey)
 	}
 
-	if sshPublicKey.name != name {
-		t.Errorf("Name of public key from file '%s' differs from expected name '%s'", sshPublicKey.name, name)
+	if SSHPublicKey.name != name {
+		t.Errorf("Name of public key from file '%s' differs from expected name '%s'", SSHPublicKey.name, name)
 	}
 }
 
 func TestWriteSSHPublicKeyToConf(t *testing.T) {
 	viper.Reset()
 
-	key := &sshPublicKey{publicKey: "key", name: "name"}
+	key := &SSHPublicKey{publicKey: "key", name: "name"}
 
 	key.WriteToConfig()
 

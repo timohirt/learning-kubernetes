@@ -24,10 +24,10 @@ func (m *MockHCloudOperations) CreateSSHKey(opts hcloud.SSHKeyCreateOpts) *hclou
 }
 
 // ASSHPublicKeyWithID fixture to be used in tests
-var ASSHPublicKeyWithID = sshPublicKey{id: 17, publicKey: "publicKey", name: "name"}
+var ASSHPublicKeyWithID = SSHPublicKey{id: 17, publicKey: "publicKey", name: "name"}
 
-// ASSHPublicKeyWithIDInConfig writes key to config in scope and return sshPublicKey
-func ASSHPublicKeyWithIDInConfig() sshPublicKey {
+// ASSHPublicKeyWithIDInConfig writes key to config in scope and return SSHPublicKey
+func ASSHPublicKeyWithIDInConfig() SSHPublicKey {
 	ASSHPublicKeyWithID.WriteToConfig()
 	return ASSHPublicKeyWithID
 }
