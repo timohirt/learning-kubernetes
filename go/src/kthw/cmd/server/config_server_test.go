@@ -1,6 +1,7 @@
-package config
+package server_test
 
 import (
+	"kthw/cmd/server"
 	"kthw/cmd/sshkey"
 	"testing"
 
@@ -8,7 +9,7 @@ import (
 )
 
 func setupConfig(key sshkey.SSHPublicKey) {
-	SetHCloudServerDefaults()
+	server.SetHCloudServerDefaults()
 	key.WriteToConfig()
 }
 
@@ -16,25 +17,25 @@ func TestAddServer(t *testing.T) {
 	viper.Reset()
 	key := sshkey.ASSHPublicKeyWithID
 	setupConfig(key)
-	addServer(nil, []string{"controller-1"})
+	server.AddServer("controller-1")
 
 	if viper.GetString("hcloud.server.controller-1.name") != "controller-1" {
 		t.Error("Server name 'controller-1' doesn't exist in config.")
 	}
 
 	serverType := viper.GetString("hcloud.server.controller-1.serverType")
-	if serverType != HCloudServerType {
-		t.Errorf("ServerType '%s' in configuration differs from expected default type '%s'.", serverType, HCloudServerType)
+	if serverType != server.HCloudServerType {
+		t.Errorf("ServerType '%s' in configuration differs from expected default type '%s'.", serverType, server.HCloudServerType)
 	}
 
 	location := viper.GetString("hcloud.server.controller-1.locationName")
-	if location != HCloudLocation {
-		t.Errorf("Location '%s' in configuration differs from expected default location '%s'.", location, HCloudLocation)
+	if location != server.HCloudLocation {
+		t.Errorf("Location '%s' in configuration differs from expected default location '%s'.", location, server.HCloudLocation)
 	}
 
 	image := viper.GetString("hcloud.server.controller-1.imageName")
-	if image != HCloudImage {
-		t.Errorf("Image '%s' in configuration differs from expected default image '%s'.", image, HCloudImage)
+	if image != server.HCloudImage {
+		t.Errorf("Image '%s' in configuration differs from expected default image '%s'.", image, server.HCloudImage)
 	}
 
 	publicKeyID := viper.GetInt("hcloud.server.controller-1.publicKeyId")
@@ -47,14 +48,14 @@ func TestAddServer(t *testing.T) {
 func TestReadServiceConfigFailIfServerNameNotSet(t *testing.T) {
 	viper.Reset()
 
-	serverConfig := ServerConfig{}
+	serverConfig := server.Config{}
 	err := serverConfig.ReadFromConfig()
 	if err == nil {
 		t.Error("Server loaded from config, although no server name was given.")
 	}
 }
 
-func TestReadInitialServerConfig(t *testing.T) {
+func TestReadInitialConfig(t *testing.T) {
 	viper.Reset()
 
 	viper.Set("hcloud.server.controller-1.name", "controller-1")
@@ -62,7 +63,7 @@ func TestReadInitialServerConfig(t *testing.T) {
 	viper.Set("hcloud.server.controller-1.locationName", "irrelevant")
 	viper.Set("hcloud.server.controller-1.imageName", "irrelevant")
 
-	serverConfig := ServerConfig{Name: "controller-1"}
+	serverConfig := server.Config{Name: "controller-1"}
 	err := serverConfig.ReadFromConfig()
 	if err != nil {
 		t.Fatal(err)
@@ -82,7 +83,7 @@ func TestReadInitialServerConfig(t *testing.T) {
 
 }
 
-func TestReadServerConfigNonInitValues(t *testing.T) {
+func TestReadConfigNonInitValues(t *testing.T) {
 	viper.Reset()
 
 	viper.Set("hcloud.server.controller-1.name", "controller-1")
@@ -93,7 +94,7 @@ func TestReadServerConfigNonInitValues(t *testing.T) {
 	viper.Set("hcloud.server.controller-1.rootPassword", "irrelevant")
 	viper.Set("hcloud.server.controller-1.publicKeyId", 17)
 
-	serverConfig := ServerConfig{Name: "controller-1"}
+	serverConfig := server.Config{Name: "controller-1"}
 	err := serverConfig.ReadFromConfig()
 	if err != nil {
 		t.Fatal(err)

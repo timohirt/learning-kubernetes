@@ -1,11 +1,10 @@
-package config
+package server
 
 import (
 	"fmt"
 	"kthw/cmd/common"
 	"kthw/cmd/sshkey"
 
-	"github.com/spf13/cobra"
 	viper "github.com/spf13/viper"
 )
 
@@ -22,8 +21,8 @@ const (
 	HCloudLocation = "nbg1"
 )
 
-// ServerConfig from config file
-type ServerConfig struct {
+// Config from config file
+type Config struct {
 	Name           string
 	ServerType     string
 	ImageName      string
@@ -34,7 +33,7 @@ type ServerConfig struct {
 }
 
 // UpdateConfig updates the configuration with the current field values. Changes are not persisted.
-func (sc *ServerConfig) UpdateConfig() {
+func (sc *Config) UpdateConfig() {
 	viper.Set(sc.confServerNameKey(), sc.Name)
 	viper.Set(sc.confServerTypeKey(), sc.ServerType)
 	viper.Set(sc.confLocationNameKey(), sc.LocationName)
@@ -51,8 +50,8 @@ func (sc *ServerConfig) UpdateConfig() {
 }
 
 // ReadFromConfig reads the config of a server from the configuration file.
-// Name field of ServerConfig must be set.
-func (sc *ServerConfig) ReadFromConfig() error {
+// Name field of Config must be set.
+func (sc *Config) ReadFromConfig() error {
 	if sc.Name == "" {
 		return fmt.Errorf("Could not read server from config. Server name not set")
 	}
@@ -73,37 +72,37 @@ func (sc *ServerConfig) ReadFromConfig() error {
 	return nil
 }
 
-func (sc *ServerConfig) confSSKPublicKeyID() string {
+func (sc *Config) confSSKPublicKeyID() string {
 	return fmt.Sprintf("hcloud.server.%s.publicKeyId", sc.Name)
 }
 
-func (sc *ServerConfig) confServerNameKey() string {
+func (sc *Config) confServerNameKey() string {
 	return fmt.Sprintf("hcloud.server.%s.name", sc.Name)
 }
 
-func (sc *ServerConfig) confServerTypeKey() string {
+func (sc *Config) confServerTypeKey() string {
 	return fmt.Sprintf("hcloud.server.%s.serverType", sc.Name)
 }
 
-func (sc *ServerConfig) confImageNameKey() string {
+func (sc *Config) confImageNameKey() string {
 	return fmt.Sprintf("hcloud.server.%s.imageName", sc.Name)
 }
 
-func (sc *ServerConfig) confLocationNameKey() string {
+func (sc *Config) confLocationNameKey() string {
 	return fmt.Sprintf("hcloud.server.%s.locationName", sc.Name)
 }
 
-func (sc *ServerConfig) confPublicIPKey() string {
+func (sc *Config) confPublicIPKey() string {
 	return fmt.Sprintf("hcloud.server.%s.publicIP", sc.Name)
 }
 
-func (sc *ServerConfig) confRootPasswordKey() string {
+func (sc *Config) confRootPasswordKey() string {
 	return fmt.Sprintf("hcloud.server.%s.rootPassword", sc.Name)
 }
 
-// ServerConfigFromConfig reads settings of a specific server from config.
-func ServerConfigFromConfig(serverName string) ServerConfig {
-	serverConfig := ServerConfig{Name: serverName}
+// FromConfig reads settings of a specific server from config.
+func FromConfig(serverName string) Config {
+	serverConfig := Config{Name: serverName}
 	err := serverConfig.ReadFromConfig()
 	common.WhenErrPrintAndExit(err)
 	return serverConfig
@@ -117,11 +116,10 @@ func SetHCloudServerDefaults() {
 }
 
 // AddServer uses the first argument as server name and adds this server to the configuration.
-func addServer(_ *cobra.Command, args []string) {
+func AddServer(serverName string) {
 	sshKey, err := sshkey.ReadSSHPublicKeyFromConf()
 	common.WhenErrPrintAndExit(err)
-	serverName := args[0]
-	serverConf := ServerConfig{
+	serverConf := Config{
 		Name:           serverName,
 		SSHPublicKeyID: sshKey.ID,
 		ServerType:     viper.GetString(confHCloudDefaultServerTypeKey),
@@ -130,13 +128,3 @@ func addServer(_ *cobra.Command, args []string) {
 	}
 	serverConf.UpdateConfig()
 }
-
-var AddServerCommand = &cobra.Command{
-	Use:   "add-server <name>",
-	Short: "Adds a new server to the config file.",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		addServer(cmd, args)
-		err := viper.WriteConfig()
-		common.WhenErrPrintAndExit(err)
-	}}

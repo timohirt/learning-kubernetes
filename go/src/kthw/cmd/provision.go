@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"kthw/cmd/common"
-	"kthw/cmd/config"
 	"kthw/cmd/hcloudclient"
+	"kthw/cmd/server"
 	"kthw/cmd/sshkey"
 	"os"
 
@@ -22,9 +22,9 @@ var createServerCommand = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		serverName := args[0]
-		serverConfig := config.ServerConfigFromConfig(serverName)
+		serverConfig := server.FromConfig(serverName)
 		hcloudClient := hcloudclient.NewHCloudClient(APIToken)
-		updatedConfig, err := createServer(serverConfig, hcloudClient)
+		updatedConfig, err := server.Create(serverConfig, hcloudClient)
 		common.WhenErrPrintAndExit(err)
 
 		updatedConfig.UpdateConfig()

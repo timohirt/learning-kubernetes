@@ -12,7 +12,7 @@ type MockHCloudOperations struct {
 }
 
 // CreateServer returns createServerResults defiend in MockHCloudOperations
-func (m *MockHCloudOperations) CreateServer(opts hcloud.ServerCreateOpts) *CreateServerResults {
+func (m *MockHCloudOperations) Create(opts hcloud.ServerCreateOpts) *CreateServerResults {
 	return m.CreateServerResults
 }
 

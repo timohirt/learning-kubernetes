@@ -1,20 +1,11 @@
-package cmd
+package server
 
 import (
-	"kthw/cmd/config"
 	"kthw/cmd/hcloudclient"
 	"kthw/cmd/sshkey"
 
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
-
-// CreateServerOpts are used to create a server in hcloud
-type CreateServerOpts struct {
-	name         string
-	serverType   string
-	imageName    string
-	locationName string
-}
 
 var basicCloudInit = `#cloud-config
 apt:
@@ -38,9 +29,9 @@ packages:
   - [docker-ce, 18.06.1~ce~3-0~ubuntu]
 `
 
-// CreateServer creates a server in hcloud using the provided config. Public ip and
+// Create creates a server in hcloud using the provided config. Public ip and
 // root password are added to the conf and calling code is assumed to write the configuration.
-func createServer(config config.ServerConfig, client hcloudclient.HCloudOperations) (*config.ServerConfig, error) {
+func Create(config Config, client hcloudclient.HCloudOperations) (*Config, error) {
 	sshKeyFromConf, err := sshkey.ReadSSHPublicKeyFromConf()
 	if err != nil {
 		return nil, err
@@ -60,7 +51,7 @@ func createServer(config config.ServerConfig, client hcloudclient.HCloudOperatio
 		SSHKeys:          []*hcloud.SSHKey{sshKey},
 		StartAfterCreate: &startAfterCreate}
 
-	serverCreated := client.CreateServer(serverOpts)
+	serverCreated := client.Create(serverOpts)
 
 	config.PublicIP = serverCreated.PublicIP
 	config.RootPassword = serverCreated.RootPassword

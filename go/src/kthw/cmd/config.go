@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"kthw/cmd/common"
-	"kthw/cmd/config"
+	"kthw/cmd/server"
 	"kthw/cmd/sshkey"
 	"log"
 
@@ -28,7 +28,7 @@ var initConfCommand = &cobra.Command{
 		viper.SetConfigFile(defaultConfigFile)
 		projectName := args[0]
 		viper.Set(ConfProjectNameKey, projectName)
-		config.SetHCloudServerDefaults()
+		server.SetHCloudServerDefaults()
 		err := viper.WriteConfig()
 		common.WhenErrPrintAndExit(err)
 	}}
@@ -52,9 +52,20 @@ var addSSHKeyCommand = &cobra.Command{
 		fmt.Printf("SSH key '%s' successfully added to config.\n", name)
 	}}
 
+var addServerCommand = &cobra.Command{
+	Use:   "add-server <name>",
+	Short: "Adds a new server to the config file.",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		serverName := args[0]
+		server.AddServer(serverName)
+		err := viper.WriteConfig()
+		common.WhenErrPrintAndExit(err)
+	}}
+
 func configCommands() *cobra.Command {
 	configCommand.AddCommand(initConfCommand)
-	configCommand.AddCommand(config.AddServerCommand)
+	configCommand.AddCommand(addServerCommand)
 	configCommand.AddCommand(addSSHKeyCommand)
 	return configCommand
 }

@@ -1,8 +1,8 @@
-package cmd
+package server_test
 
 import (
-	"kthw/cmd/config"
 	"kthw/cmd/hcloudclient"
+	"kthw/cmd/server"
 	"kthw/cmd/sshkey"
 	"reflect"
 	"testing"
@@ -10,14 +10,14 @@ import (
 	viper "github.com/spf13/viper"
 )
 
-func setupTestCreateServer() (*hcloudclient.CreateServerResults, *hcloudclient.MockHCloudOperations, config.ServerConfig) {
+func setupTestCreateServer() (*hcloudclient.CreateServerResults, *hcloudclient.MockHCloudOperations, server.Config) {
 	createServerResult := &hcloudclient.CreateServerResults{
 		PublicIP:     "10.0.0.1",
 		RootPassword: "Passw0rt",
 		DNSName:      "m1.hetzner.com"}
 	hcloudClient := &hcloudclient.MockHCloudOperations{
 		CreateServerResults: createServerResult}
-	config := config.ServerConfig{
+	config := server.Config{
 		Name:         "m1",
 		ServerType:   "cx21",
 		ImageName:    "ubuntu",
@@ -30,7 +30,7 @@ func TestCreateServer(t *testing.T) {
 	sshKey := sshkey.ASSHPublicKeyWithIDInConfig()
 	createServerResult, hcloudClient, serverConfig := setupTestCreateServer()
 
-	updatedConfig, err := createServer(serverConfig, hcloudClient)
+	updatedConfig, err := server.Create(serverConfig, hcloudClient)
 	if err != nil {
 		t.Errorf("Error while creating server: %s", err)
 	}
@@ -48,7 +48,7 @@ func TestCreateServerWhenThereIsNoSSHPublicKeyInConfig(t *testing.T) {
 	viper.Reset()
 	_, hcloudClient, serverConfig := setupTestCreateServer()
 
-	_, err := createServer(serverConfig, hcloudClient)
+	_, err := server.Create(serverConfig, hcloudClient)
 	if err == nil {
 		t.Errorf("A error should be returned as there is no SSH public key in config")
 	}

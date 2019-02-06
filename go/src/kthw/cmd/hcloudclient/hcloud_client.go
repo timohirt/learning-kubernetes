@@ -9,7 +9,7 @@ import (
 
 // HCloudOperations defines operations to be implemented by HCloudClient
 type HCloudOperations interface {
-	CreateServer(opts hcloud.ServerCreateOpts) *CreateServerResults
+	Create(opts hcloud.ServerCreateOpts) *CreateServerResults
 	CreateSSHKey(opts hcloud.SSHKeyCreateOpts) *CreateSSHKeyResults
 }
 
@@ -37,7 +37,7 @@ type CreateServerResults struct {
 }
 
 // CreateServer creates a server using hcloud API and the provided options
-func (hc *HCloudClient) CreateServer(opts hcloud.ServerCreateOpts) *CreateServerResults {
+func (hc *HCloudClient) Create(opts hcloud.ServerCreateOpts) *CreateServerResults {
 	serverCreateResult, _, err := hc.client.Server.Create(hc.context, opts)
 	hc.ensureNoError(err)
 	return &CreateServerResults{
