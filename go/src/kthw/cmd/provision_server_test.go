@@ -1,14 +1,15 @@
 package cmd
 
 import (
+	"kthw/cmd/hcloudclient"
 	"reflect"
 	"testing"
 
 	viper "github.com/spf13/viper"
 )
 
-func setupTestCreateServer() (*CreateServerResults, *MockHCloudOperations, ServerConfig) {
-	createServerResult := &CreateServerResults{
+func setupTestCreateServer() (*hcloudclient.CreateServerResults, *MockHCloudOperations, ServerConfig) {
+	createServerResult := &hcloudclient.CreateServerResults{
 		PublicIP:     "10.0.0.1",
 		RootPassword: "Passw0rt",
 		DNSName:      "m1.hetzner.com"}

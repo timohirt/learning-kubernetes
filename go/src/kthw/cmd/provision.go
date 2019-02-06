@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"kthw/cmd/hcloudclient"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -19,7 +20,7 @@ var createServerCommand = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		serverName := args[0]
 		serverConfig := serverConfigFromConfig(serverName)
-		hcloudClient := NewHCloudClient(APIToken)
+		hcloudClient := hcloudclient.NewHCloudClient(APIToken)
 		updatedConfig, err := createServer(serverConfig, hcloudClient)
 		whenErrPrintAndExit(err)
 
@@ -37,7 +38,7 @@ var createSSHKeysCommand = &cobra.Command{
 			fmt.Println("ApiToken not found. Make sure you set the --apitoken flag")
 			os.Exit(1)
 		}
-		hcloudClient := NewHCloudClient(APIToken)
+		hcloudClient := hcloudclient.NewHCloudClient(APIToken)
 		updatedConfig := createSSHKey(*key, hcloudClient)
 
 		updatedConfig.WriteToConfig()

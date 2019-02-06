@@ -1,12 +1,13 @@
 package cmd
 
 import (
+	"kthw/cmd/hcloudclient"
 	"reflect"
 	"testing"
 )
 
 func TestProvisionSSHKeys(t *testing.T) {
-	createSSHKeyResult := &CreateSSHKeyResults{ID: 12}
+	createSSHKeyResult := &hcloudclient.CreateSSHKeyResults{ID: 12}
 	hcloudClient := &MockHCloudOperations{
 		createSSHKeyResults: createSSHKeyResult}
 

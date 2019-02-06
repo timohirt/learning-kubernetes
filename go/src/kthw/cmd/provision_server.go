@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"kthw/cmd/hcloudclient"
+
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
 
@@ -36,7 +38,7 @@ packages:
 
 // CreateServer creates a server in hcloud using the provided config. Public ip and
 // root password are added to the conf and calling code is assumed to write the configuration.
-func createServer(config ServerConfig, client HCloudOperations) (*ServerConfig, error) {
+func createServer(config ServerConfig, client hcloudclient.HCloudOperations) (*ServerConfig, error) {
 	sshKeyFromConf, err := readSSHPublicKeyFromConf()
 	if err != nil {
 		return nil, err
