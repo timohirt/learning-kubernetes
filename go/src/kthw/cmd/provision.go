@@ -5,6 +5,7 @@ import (
 	"kthw/cmd/common"
 	"kthw/cmd/config"
 	"kthw/cmd/hcloudclient"
+	"kthw/cmd/sshkey"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -34,14 +35,14 @@ var createSSHKeysCommand = &cobra.Command{
 	Use:   "ssh-keys",
 	Short: "Reads ssh key from config and creates in in hcloud",
 	Run: func(cmd *cobra.Command, args []string) {
-		key, err := common.ReadSSHPublicKeyFromConf()
+		key, err := sshkey.ReadSSHPublicKeyFromConf()
 		common.WhenErrPrintAndExit(err)
 		if APIToken == "" {
 			fmt.Println("ApiToken not found. Make sure you set the --apitoken flag")
 			os.Exit(1)
 		}
 		hcloudClient := hcloudclient.NewHCloudClient(APIToken)
-		updatedConfig := createSSHKey(*key, hcloudClient)
+		updatedConfig := sshkey.CreateSSHKey(*key, hcloudClient)
 
 		updatedConfig.WriteToConfig()
 		viper.WriteConfig()

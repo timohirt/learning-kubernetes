@@ -1,9 +1,7 @@
-package common
+package sshkey
 
 import (
 	"fmt"
-	"io/ioutil"
-	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -27,17 +25,6 @@ const (
 	confSSHKeysNameKey      = "sshKeys.name"
 	confSSHKeysIDKey        = "sshKeys.id"
 )
-
-// ParseSSHPublicKey read public SSH key from file and creates SSHPublicKey
-func ParseSSHPublicKey(name string, file string) (*SSHPublicKey, error) {
-	fileContent, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil, fmt.Errorf("Error reading ssh key from file '%s': %s", file, err)
-	}
-	publicKeyFromFile := strings.TrimSpace(string(fileContent))
-	publicKey := &SSHPublicKey{PublicKey: publicKeyFromFile, Name: name}
-	return publicKey, nil
-}
 
 // ReadSSHPublicKeyFromConf reads public ssh key from config and returns error if non is set
 func ReadSSHPublicKeyFromConf() (*SSHPublicKey, error) {

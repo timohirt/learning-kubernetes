@@ -1,20 +1,20 @@
 package config
 
 import (
-	"kthw/cmd"
+	"kthw/cmd/sshkey"
 	"testing"
 
 	viper "github.com/spf13/viper"
 )
 
-func setupConfig(key SSHPublicKey) {
+func setupConfig(key sshkey.SSHPublicKey) {
 	SetHCloudServerDefaults()
 	key.WriteToConfig()
 }
 
 func TestAddServer(t *testing.T) {
 	viper.Reset()
-	key := cmd.ASSHPublicKeyWithID
+	key := sshkey.ASSHPublicKeyWithID
 	setupConfig(key)
 	addServer(nil, []string{"controller-1"})
 
@@ -38,8 +38,8 @@ func TestAddServer(t *testing.T) {
 	}
 
 	publicKeyID := viper.GetInt("hcloud.server.controller-1.publicKeyId")
-	if publicKeyID != key.id {
-		t.Errorf("SSH key id '%d' in config differs from expected key id '%d'", publicKeyID, key.id)
+	if publicKeyID != key.ID {
+		t.Errorf("SSH key id '%d' in config differs from expected key id '%d'", publicKeyID, key.ID)
 	}
 
 }

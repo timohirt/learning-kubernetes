@@ -3,19 +3,20 @@ package cmd
 import (
 	"kthw/cmd/config"
 	"kthw/cmd/hcloudclient"
+	"kthw/cmd/sshkey"
 	"reflect"
 	"testing"
 
 	viper "github.com/spf13/viper"
 )
 
-func setupTestCreateServer() (*hcloudclient.CreateServerResults, *MockHCloudOperations, config.ServerConfig) {
+func setupTestCreateServer() (*hcloudclient.CreateServerResults, *hcloudclient.MockHCloudOperations, config.ServerConfig) {
 	createServerResult := &hcloudclient.CreateServerResults{
 		PublicIP:     "10.0.0.1",
 		RootPassword: "Passw0rt",
 		DNSName:      "m1.hetzner.com"}
-	hcloudClient := &MockHCloudOperations{
-		createServerResults: createServerResult}
+	hcloudClient := &hcloudclient.MockHCloudOperations{
+		CreateServerResults: createServerResult}
 	config := config.ServerConfig{
 		Name:         "m1",
 		ServerType:   "cx21",
@@ -26,7 +27,7 @@ func setupTestCreateServer() (*hcloudclient.CreateServerResults, *MockHCloudOper
 
 func TestCreateServer(t *testing.T) {
 	viper.Reset()
-	sshKey := ASSHPublicKeyWithIDInConfig()
+	sshKey := sshkey.ASSHPublicKeyWithIDInConfig()
 	createServerResult, hcloudClient, serverConfig := setupTestCreateServer()
 
 	updatedConfig, err := createServer(serverConfig, hcloudClient)

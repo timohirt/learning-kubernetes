@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"kthw/cmd/common"
+	"kthw/cmd/sshkey"
 
 	"github.com/spf13/cobra"
 	viper "github.com/spf13/viper"
@@ -117,7 +118,7 @@ func SetHCloudServerDefaults() {
 
 // AddServer uses the first argument as server name and adds this server to the configuration.
 func addServer(_ *cobra.Command, args []string) {
-	sshKey, err := common.ReadSSHPublicKeyFromConf()
+	sshKey, err := sshkey.ReadSSHPublicKeyFromConf()
 	common.WhenErrPrintAndExit(err)
 	serverName := args[0]
 	serverConf := ServerConfig{

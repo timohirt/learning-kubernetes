@@ -1,19 +1,19 @@
-package cmd
+package sshkey_test
 
 import (
-	"kthw/cmd/common"
 	"kthw/cmd/hcloudclient"
+	"kthw/cmd/sshkey"
 	"reflect"
 	"testing"
 )
 
 func TestProvisionSSHKeys(t *testing.T) {
 	createSSHKeyResult := &hcloudclient.CreateSSHKeyResults{ID: 12}
-	hcloudClient := &MockHCloudOperations{
-		createSSHKeyResults: createSSHKeyResult}
+	hcloudClient := &hcloudclient.MockHCloudOperations{
+		CreateSSHKeyResults: createSSHKeyResult}
 
-	key := common.SSHPublicKey{PublicKey: "key", Name: "name"}
-	updatedKey := createSSHKey(key, hcloudClient)
+	key := sshkey.SSHPublicKey{PublicKey: "key", Name: "name"}
+	updatedKey := sshkey.CreateSSHKey(key, hcloudClient)
 
 	key.ID = 12
 
