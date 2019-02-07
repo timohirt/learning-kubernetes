@@ -23,13 +23,14 @@ var createServerCommand = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		serverName := args[0]
 		serverConfig := server.FromConfig(serverName)
-		fmt.Println(serverConfig)
 		hcloudClient := hcloudclient.NewHCloudClient(APIToken)
 		updatedConfig, err := server.Create(serverConfig, hcloudClient)
 		common.WhenErrPrintAndExit(err)
 
 		updatedConfig.UpdateConfig()
 		viper.WriteConfig()
+
+		fmt.Printf("Server %s successfully created.\n", serverName)
 	}}
 
 var createSSHKeysCommand = &cobra.Command{

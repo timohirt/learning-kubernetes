@@ -12,6 +12,7 @@ import (
 
 func setupTestCreateServer() (*hcloudclient.CreateServerResults, *hcloudclient.MockHCloudOperations, server.Config) {
 	createServerResult := &hcloudclient.CreateServerResults{
+		ID:           42,
 		PublicIP:     "10.0.0.1",
 		RootPassword: "Passw0rt",
 		DNSName:      "m1.hetzner.com"}
@@ -38,6 +39,7 @@ func TestCreateServer(t *testing.T) {
 	serverConfig.RootPassword = createServerResult.RootPassword
 	serverConfig.PublicIP = createServerResult.PublicIP
 	serverConfig.SSHPublicKeyID = sshKey.ID
+	serverConfig.ID = createServerResult.ID
 
 	if !reflect.DeepEqual(serverConfig, *updatedConfig) {
 		t.Errorf("Expected config differs from actual config")

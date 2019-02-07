@@ -3,7 +3,6 @@ package hcloudclient
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/hetznercloud/hcloud-go/hcloud"
@@ -24,7 +23,8 @@ type HCloudClient struct {
 // NewHCloudClient creates a new HetznerClient using the APIToken provided as a flag
 func NewHCloudClient(apiToken string) *HCloudClient {
 	if apiToken == "" {
-		log.Fatal("APIToken not set. Did you set the --apiToken flag?")
+		fmt.Println("APIToken not set. Did you set the --apiToken flag?")
+		os.Exit(1)
 	}
 	client := hcloud.NewClient(hcloud.WithToken(apiToken))
 
@@ -33,6 +33,7 @@ func NewHCloudClient(apiToken string) *HCloudClient {
 
 // CreateServerResults groups returned data from hcloud
 type CreateServerResults struct {
+	ID           int
 	PublicIP     string
 	RootPassword string
 	DNSName      string
@@ -43,6 +44,7 @@ func (hc *HCloudClient) Create(opts hcloud.ServerCreateOpts) *CreateServerResult
 	serverCreateResult, _, err := hc.client.Server.Create(hc.context, opts)
 	hc.ensureNoError(err)
 	return &CreateServerResults{
+		ID:           serverCreateResult.Server.ID,
 		PublicIP:     serverCreateResult.Server.PublicNet.IPv4.IP.String(),
 		RootPassword: serverCreateResult.RootPassword,
 		DNSName:      serverCreateResult.Server.PublicNet.IPv4.DNSPtr}

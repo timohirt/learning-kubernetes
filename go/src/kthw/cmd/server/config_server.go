@@ -23,6 +23,7 @@ const (
 
 // Config from config file
 type Config struct {
+	ID             int
 	Name           string
 	ServerType     string
 	ImageName      string
@@ -39,6 +40,10 @@ func (sc *Config) UpdateConfig() {
 	viper.Set(sc.confLocationNameKey(), sc.LocationName)
 	viper.Set(sc.confImageNameKey(), sc.ImageName)
 	viper.Set(sc.confSSKPublicKeyID(), sc.SSHPublicKeyID)
+
+	if sc.ID != 0 {
+		viper.Set(sc.confIDKey(), sc.ID)
+	}
 
 	if sc.PublicIP != "" {
 		viper.Set(sc.confPublicIPKey(), sc.PublicIP)
@@ -64,6 +69,11 @@ func (sc *Config) ReadFromConfig() error {
 	rootPassword := viper.GetString(sc.confRootPasswordKey())
 	if rootPassword != "" {
 		sc.RootPassword = rootPassword
+	}
+
+	id := viper.GetInt(sc.confIDKey())
+	if id != 0 {
+		sc.ID = id
 	}
 
 	sc.SSHPublicKeyID = viper.GetInt(sc.confSSKPublicKeyID())
@@ -99,6 +109,10 @@ func (sc *Config) confPublicIPKey() string {
 
 func (sc *Config) confRootPasswordKey() string {
 	return fmt.Sprintf("hcloud.server.%s.rootPassword", sc.Name)
+}
+
+func (sc *Config) confIDKey() string {
+	return fmt.Sprintf("hcloud.server.%s.id", sc.Name)
 }
 
 // FromConfig reads settings of a specific server from config.

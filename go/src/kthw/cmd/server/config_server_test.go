@@ -86,6 +86,7 @@ func TestReadInitialConfig(t *testing.T) {
 func TestReadConfigNonInitValues(t *testing.T) {
 	viper.Reset()
 
+	viper.Set("hcloud.server.controller-1.id", 42)
 	viper.Set("hcloud.server.controller-1.name", "controller-1")
 	viper.Set("hcloud.server.controller-1.serverType", "irrelevant")
 	viper.Set("hcloud.server.controller-1.locationName", "irrelevant")
@@ -109,6 +110,10 @@ func TestReadConfigNonInitValues(t *testing.T) {
 	}
 
 	if serverConfig.SSHPublicKeyID != 17 {
-		t.Errorf("SSHPublicKeyID was '%d' and differs from expected '17'", serverConfig.SSHPublicKeyID)
+		t.Errorf("SSHPublicKeyID was '%d' and differs from expected id '17'", serverConfig.SSHPublicKeyID)
+	}
+
+	if serverConfig.ID != 42 {
+		t.Errorf("ID was '%d' and differs from expected ID '42'", serverConfig.ID)
 	}
 }

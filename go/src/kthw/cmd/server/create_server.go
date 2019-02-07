@@ -21,7 +21,8 @@ apt_update: true
 apt_upgrade: true
 apt_reboot_if_required: true 
 packages:
-  - wireguard
+	- wireguard
+	- linux-headers-generic
   - apt-transport-https
   - ca-certificates
   - curl
@@ -56,6 +57,7 @@ func Create(config Config, client hcloudclient.HCloudOperations) (*Config, error
 	config.PublicIP = serverCreated.PublicIP
 	config.RootPassword = serverCreated.RootPassword
 	config.SSHPublicKeyID = sshKey.ID
+	config.ID = serverCreated.ID
 
 	return &config, nil
 }
