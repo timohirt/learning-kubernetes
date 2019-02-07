@@ -20,6 +20,9 @@ func (s *SSHPublicKey) WriteToConfig() {
 	viper.Set(confSSHKeysIDKey, s.ID)
 }
 
+// IsProvisioned checks if a SSH key is already created in hcloud.
+func (s *SSHPublicKey) IsProvisioned() bool { return s.ID != 0 }
+
 const (
 	confSSHKeysPublicKeyKey = "sshKeys.publicKey"
 	confSSHKeysNameKey      = "sshKeys.name"

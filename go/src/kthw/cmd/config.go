@@ -55,8 +55,10 @@ var addServerCommand = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		serverName := args[0]
 
-		server.AddServer(serverName)
-		err := viper.WriteConfig()
+		err := server.AddServer(serverName)
+		common.WhenErrPrintAndExit(err)
+
+		err = viper.WriteConfig()
 		common.WhenErrPrintAndExit(err)
 
 		fmt.Printf("Server %s successfully added to config.\n", serverName)

@@ -131,10 +131,15 @@ func SetHCloudServerDefaults() {
 }
 
 // AddServer uses the first argument as server name and adds this server to the configuration.
-func AddServer(serverName string) {
+func AddServer(serverName string) error {
 	sshKey, err := sshkey.ReadSSHPublicKeyFromConf()
-	common.WhenErrPrintAndExit(err)
-	// TODO Ensure sshkey is provisioned
+	if err != nil {
+		return err
+	}
+	if !sshKey.IsProvisioned() {
+		return fmt.Errorf(
+			"Could not add SSH key to server '%s'. The SSH key '%s' is not available in hcloud. Use the provision command first", serverName, sshKey.Name)
+	}
 	serverConf := Config{
 		Name:           serverName,
 		SSHPublicKeyID: sshKey.ID,
@@ -143,4 +148,5 @@ func AddServer(serverName string) {
 		LocationName:   viper.GetString(confHCloudLocationNameKey),
 	}
 	serverConf.UpdateConfig()
+	return nil
 }

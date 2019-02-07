@@ -33,6 +33,19 @@ func TestWriteSSHPublicKeyToConf(t *testing.T) {
 	}
 }
 
+func TestSSHPublicKeyIsProvisioned(t *testing.T) {
+	key := sshkey.SSHPublicKey{ID: 0}
+
+	if key.IsProvisioned() {
+		t.Errorf("SSH key id is '0' which means it was not provisioned yet. IsProvisioned says it it.")
+	}
+
+	key.ID = 12
+	if !key.IsProvisioned() {
+		t.Errorf("SSH key has id '12' and was provisioned. IsProvisioned says it is not.")
+	}
+}
+
 func TestReadSSHPublicKeyFromConf(t *testing.T) {
 	viper.Reset()
 	viper.Set("sshKeys.name", "name")

@@ -17,7 +17,10 @@ func TestAddServer(t *testing.T) {
 	viper.Reset()
 	key := sshkey.ASSHPublicKeyWithID
 	setupConfig(key)
-	server.AddServer("controller-1")
+	err := server.AddServer("controller-1")
+	if err != nil {
+		t.Fatalf("Enexpected error while adding server to conf: %s", err)
+	}
 
 	if viper.GetString("hcloud.server.controller-1.name") != "controller-1" {
 		t.Error("Server name 'controller-1' doesn't exist in config.")
@@ -43,6 +46,17 @@ func TestAddServer(t *testing.T) {
 		t.Errorf("SSH key id '%d' in config differs from expected key id '%d'", publicKeyID, key.ID)
 	}
 
+}
+
+func TestAddServerFailIfSSHKeyNotProvisioned(t *testing.T) {
+	viper.Reset()
+	key := sshkey.ASSHPublicKeyWithID
+	key.ID = 0
+	setupConfig(key)
+	err := server.AddServer("controller-1")
+	if err == nil {
+		t.Errorf("Added a server while the SSH key was not created at hcloud. This shouldn't be possible.")
+	}
 }
 
 func TestReadServiceConfigFailIfServerNameNotSet(t *testing.T) {
