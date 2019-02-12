@@ -21,13 +21,17 @@ apt_update: true
 apt_upgrade: true
 apt_reboot_if_required: true 
 packages:
-	- wireguard
-	- linux-headers-generic
+  - wireguard
+  - linux-headers-generic
   - apt-transport-https
   - ca-certificates
   - curl
   - software-properties-common
   - [docker-ce, 18.06.1~ce~3-0~ubuntu]
+runcmd:
+  - [ sudo, ufw, allow, 22/tcp ]
+  - [ sudo, ufw, allow, 51820/udp ]
+  - [ sudo, ufw, enable ]
 `
 
 // Create creates a server in hcloud using the provided config. Public ip and
