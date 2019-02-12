@@ -191,11 +191,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:88059f6a0aac262a2269f071ebf2f2df04307b7698c1ce65fe1a53e3e0b9a7ea"
+  digest = "1:06d2e21f8a640d122c5f86da5233dc5896be79915759054db26805845479eca8"
   name = "golang.org/x/crypto"
   packages = [
     "cryptobyte",
     "cryptobyte/asn1",
+    "curve25519",
     "ocsp",
     "pkcs12",
     "pkcs12/internal/rc2",
@@ -259,6 +260,7 @@
     "github.com/hetznercloud/hcloud-go/hcloud",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
+    "golang.org/x/crypto/curve25519",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

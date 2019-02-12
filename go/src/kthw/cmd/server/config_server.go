@@ -29,6 +29,7 @@ type Config struct {
 	ImageName      string
 	LocationName   string
 	PublicIP       string
+	PrivateIP      string
 	RootPassword   string
 	SSHPublicKeyID int
 }
