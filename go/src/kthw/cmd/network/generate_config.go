@@ -25,6 +25,7 @@ AllowedIPs = {{.AllowedIPs}}
 {{end}}
 `
 
+// Host holds IPs, public and private key used to connect servers with wireguard.
 type Host struct {
 	PublicIP     string
 	PrivateIP    string
@@ -34,6 +35,7 @@ type Host struct {
 	ServerConfig server.Config
 }
 
+// ToPeer generates a Peer from the fields of a Host
 func (h *Host) ToPeer() Peer {
 	if h.PublicKey == "" || h.PrivateIP == "" || h.PublicIP == "" {
 		fmt.Printf("Error converting host to peer. Private key (%s), private ip (%s) and public key (%s) must be non-zero", h.PrivateKey, h.PrivateIP, h.PublicKey)
@@ -45,29 +47,32 @@ func (h *Host) ToPeer() Peer {
 		Endpoint:   h.PublicIP}
 }
 
-func (w *Host) generateServerConf() (string, error) {
+func (h *Host) generateServerConf() (string, error) {
 	tmpl, err := template.New("interface").Parse(serverInterfaceTemplate)
 	if err != nil {
 		return "", err
 	}
 
 	var confBuffer bytes.Buffer
-	tmpl.ExecuteTemplate(&confBuffer, "interface", w)
+	tmpl.ExecuteTemplate(&confBuffer, "interface", h)
 
 	renderedConfig := confBuffer.String()
 	return renderedConfig, nil
 }
 
+// Peer configuration of wireguard configuration.
 type Peer struct {
 	PublicKey  string
 	AllowedIPs string
 	Endpoint   string
 }
 
+// WgConf contains the wireguard configuration for each host.
 type WgConf struct {
 	WgHosts []*Host
 }
 
+// GenerateWireguardConf generates wireguard configuration for all servers passed on.
 func GenerateWireguardConf(servers []server.Config) (*WgConf, error) {
 	hosts := genAndAddKeys(servers)
 
