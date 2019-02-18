@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/timohirt/learning-kubernetes.svg?branch=master)](https://travis-ci.com/timohirt/learning-kubernetes)
+
 # Learning Kubernetes
 
 This repository contains examples I used to learn more about Kubernetes. I use
