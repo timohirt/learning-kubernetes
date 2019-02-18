@@ -131,3 +131,34 @@ func TestReadConfigNonInitValues(t *testing.T) {
 		t.Errorf("ID was '%d' and differs from expected ID '42'", serverConfig.ID)
 	}
 }
+
+func TestReadAllServersFromConfig(t *testing.T) {
+	viper.Reset()
+
+	viper.Set("hcloud.server.controller-1.id", 42)
+	viper.Set("hcloud.server.controller-1.name", "controller-1")
+	viper.Set("hcloud.server.controller-1.serverType", "irrelevant")
+	viper.Set("hcloud.server.controller-1.locationName", "irrelevant")
+	viper.Set("hcloud.server.controller-1.imageName", "irrelevant")
+	viper.Set("hcloud.server.controller-1.publicIP", "irrelevant")
+	viper.Set("hcloud.server.controller-1.rootPassword", "irrelevant")
+	viper.Set("hcloud.server.controller-1.publicKeyId", 17)
+
+	viper.Set("hcloud.server.controller-2.id", 43)
+	viper.Set("hcloud.server.controller-2.name", "controller-2")
+	viper.Set("hcloud.server.controller-2.serverType", "irrelevant")
+	viper.Set("hcloud.server.controller-2.locationName", "irrelevant")
+	viper.Set("hcloud.server.controller-2.imageName", "irrelevant")
+	viper.Set("hcloud.server.controller-2.publicIP", "irrelevant")
+	viper.Set("hcloud.server.controller-2.rootPassword", "irrelevant")
+	viper.Set("hcloud.server.controller-2.publicKeyId", 18)
+
+	configs, err := server.AllFromConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(configs) != 2 {
+		t.Errorf("Expected two servers from config, but got only '%d'", len(configs))
+	}
+}

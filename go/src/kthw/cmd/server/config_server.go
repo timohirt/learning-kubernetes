@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	confHCloudServersKey           = "hcloud.server"
 	confHCloudDefaultServerTypeKey = "hcloud.default.serverType"
 	confHCloudDefaultImageNameKey  = "hcloud.default.imageName"
 	confHCloudLocationNameKey      = "hcloud.default.locationName"
@@ -122,6 +123,21 @@ func FromConfig(serverName string) Config {
 	err := serverConfig.ReadFromConfig()
 	common.WhenErrPrintAndExit(err)
 	return serverConfig
+}
+
+// AllFromConfig reads Config of all servers from configuration.
+func AllFromConfig() ([]Config, error) {
+	serverNames := viper.GetStringMapString(confHCloudServersKey)
+	if len(serverNames) < 1 {
+		return nil, fmt.Errorf("no servers fond in config")
+	}
+
+	serverConfigs := make([]Config, 0)
+	for name := range serverNames {
+		current := FromConfig(name)
+		serverConfigs = append(serverConfigs, current)
+	}
+	return serverConfigs, nil
 }
 
 // SetHCloudServerDefaults sets default server type, image and location, which are used to add servers.
