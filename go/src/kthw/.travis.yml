@@ -1,0 +1,11 @@
+language: go
+go:
+  - 1.11.x
+before_install:
+  - export GOPATH="${TRAVIS_BUILD_DIR}/go:$GOPATH"
+  - go get -u github.com/golang/dep/cmd/dep
+install:
+  - cd $GOPATH/src/kthw
+  - make deps
+script:
+  - make all
