@@ -31,7 +31,7 @@ func TestGenerateConfigWithThreeHosts(t *testing.T) {
 		t.Fatalf("Error while generating host confs: %s", err)
 	}
 
-	if len(wgConf.WgHosts) != 2 {
+	if len(wgConf.WgHosts) != 3 {
 		t.Fatalf("Expected two hosts, but found %d", len(wgConf.WgHosts))
 	}
 	host1 := wgConf.WgHosts[0]
