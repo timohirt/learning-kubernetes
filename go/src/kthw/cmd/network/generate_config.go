@@ -5,9 +5,9 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"html/template"
 	"kthw/cmd/server"
 	"os"
+	"text/template"
 
 	"golang.org/x/crypto/curve25519"
 )
@@ -150,16 +150,18 @@ type keyPair struct {
 func generateKeyPair() (keyPair, error) {
 	var publicKey [32]byte
 	var privateKey [32]byte
-	_, err := rand.Reader.Read(privateKey[:])
+	_, err := rand.Read(privateKey[:])
 	if err != nil {
 		return keyPair{}, fmt.Errorf("unable to generate a private key: %v", err)
 	}
 
 	privateKey[0] &= 248
-	privateKey[31] &= 127
-	privateKey[31] |= 64
+	privateKey[31] = (privateKey[31] & 127) | 64
 
 	curve25519.ScalarBaseMult(&publicKey, &privateKey)
+
+	fmt.Printf("Private key: %s\n", base64.StdEncoding.EncodeToString(privateKey[:]))
+	fmt.Printf("public key: %s\n", base64.StdEncoding.EncodeToString(publicKey[:]))
 
 	return keyPair{
 		private: base64.StdEncoding.EncodeToString(privateKey[:]),
