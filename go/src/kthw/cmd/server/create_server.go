@@ -31,6 +31,7 @@ packages:
 runcmd:
   - [ sudo, ufw, allow, 22/tcp ]
   - [ sudo, ufw, allow, 51820/udp ]
+  - [ sudo, ufw, allow, in, on, wg0 ]
   - [ sudo, ufw, enable ]
 `
 
