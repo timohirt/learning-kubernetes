@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"kthw/cmd/common"
 	"kthw/cmd/hcloudclient"
+	"kthw/cmd/network"
 	"kthw/cmd/server"
+	"kthw/cmd/sshconnect"
 	"kthw/cmd/sshkey"
 	"os"
 
@@ -51,9 +53,33 @@ var createSSHKeysCommand = &cobra.Command{
 		fmt.Println("SSH key created at hcloud.")
 	}}
 
+var configureWireguardCommand = &cobra.Command{
+	Use:   "network",
+	Short: "Generates wireguard config and establishes private overlay network",
+	Run: func(cmd *cobra.Command, args []string) {
+		sshClient := sshconnect.NewSSHConnect()
+		serverConfigs, err := server.AllFromConfig()
+		if err != nil {
+			fmt.Printf("Error while loading servers from configuration: %s\n", err)
+			os.Exit(1)
+		}
+
+		updatedServerConfigs, err := network.SetupWireguard(sshClient, serverConfigs)
+		if err != nil {
+			fmt.Printf("Error which running command: %s\n", err)
+			os.Exit(1)
+		}
+		for _, config := range updatedServerConfigs {
+			config.UpdateConfig()
+			fmt.Printf("Wireguard set up on %s.\n", config.Name)
+		}
+		viper.WriteConfig()
+	}}
+
 func provisionCommands() *cobra.Command {
 	provisionCommand.PersistentFlags().StringVarP(&APIToken, "apiToken", "a", "", "API token for access to hcloud (required)")
 	provisionCommand.AddCommand(createServerCommand)
 	provisionCommand.AddCommand(createSSHKeysCommand)
+	provisionCommand.AddCommand(configureWireguardCommand)
 	return provisionCommand
 }

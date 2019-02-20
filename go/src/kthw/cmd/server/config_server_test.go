@@ -141,6 +141,7 @@ func TestReadAllServersFromConfig(t *testing.T) {
 	viper.Set("hcloud.server.controller-1.locationName", "irrelevant")
 	viper.Set("hcloud.server.controller-1.imageName", "irrelevant")
 	viper.Set("hcloud.server.controller-1.publicIP", "irrelevant")
+	viper.Set("hcloud.server.controller-1.privateIP", "irrelevant")
 	viper.Set("hcloud.server.controller-1.rootPassword", "irrelevant")
 	viper.Set("hcloud.server.controller-1.publicKeyId", 17)
 
@@ -150,6 +151,7 @@ func TestReadAllServersFromConfig(t *testing.T) {
 	viper.Set("hcloud.server.controller-2.locationName", "irrelevant")
 	viper.Set("hcloud.server.controller-2.imageName", "irrelevant")
 	viper.Set("hcloud.server.controller-2.publicIP", "irrelevant")
+	viper.Set("hcloud.server.controller-2.privateIP", "irrelevant")
 	viper.Set("hcloud.server.controller-2.rootPassword", "irrelevant")
 	viper.Set("hcloud.server.controller-2.publicKeyId", 18)
 

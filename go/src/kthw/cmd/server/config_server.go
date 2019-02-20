@@ -51,6 +51,11 @@ func (sc *Config) UpdateConfig() {
 		viper.Set(sc.confPublicIPKey(), sc.PublicIP)
 	}
 
+	fmt.Printf("Private ip %s, host %s", sc.PrivateIP, sc.Name)
+	if sc.PrivateIP != "" {
+		viper.Set(sc.confPrivateIPKey(), sc.PrivateIP)
+	}
+
 	if sc.RootPassword != "" {
 		viper.Set(sc.confRootPasswordKey(), sc.RootPassword)
 	}
@@ -68,6 +73,11 @@ func (sc *Config) ReadFromConfig() error {
 	if publicIP != "" {
 		sc.PublicIP = publicIP
 	}
+	privateIP := viper.GetString(sc.confPrivateIPKey())
+	if privateIP != "" {
+		sc.PrivateIP = privateIP
+	}
+
 	rootPassword := viper.GetString(sc.confRootPasswordKey())
 	if rootPassword != "" {
 		sc.RootPassword = rootPassword
@@ -107,6 +117,10 @@ func (sc *Config) confLocationNameKey() string {
 
 func (sc *Config) confPublicIPKey() string {
 	return fmt.Sprintf("hcloud.server.%s.publicIP", sc.Name)
+}
+
+func (sc *Config) confPrivateIPKey() string {
+	return fmt.Sprintf("hcloud.server.%s.privateIP", sc.Name)
 }
 
 func (sc *Config) confRootPasswordKey() string {

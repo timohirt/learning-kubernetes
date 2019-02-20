@@ -12,3 +12,11 @@ func WhenErrPrintAndExit(err error) {
 		os.Exit(1)
 	}
 }
+
+// FileExists returns true if a given file exists.
+func FileExists(filePath string) bool {
+	if _, statErr := os.Stat(filePath); statErr == nil {
+		return true
+	}
+	return false
+}
