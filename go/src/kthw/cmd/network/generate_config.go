@@ -160,9 +160,6 @@ func generateKeyPair() (keyPair, error) {
 
 	curve25519.ScalarBaseMult(&publicKey, &privateKey)
 
-	fmt.Printf("Private key: %s\n", base64.StdEncoding.EncodeToString(privateKey[:]))
-	fmt.Printf("public key: %s\n", base64.StdEncoding.EncodeToString(publicKey[:]))
-
 	return keyPair{
 		private: base64.StdEncoding.EncodeToString(privateKey[:]),
 		public:  base64.StdEncoding.EncodeToString(publicKey[:]),
