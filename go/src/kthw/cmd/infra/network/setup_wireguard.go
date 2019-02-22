@@ -1,7 +1,7 @@
 package network
 
 import (
-	"kthw/cmd/server"
+	"kthw/cmd/infra/server"
 	"kthw/cmd/sshconnect"
 	"strings"
 )

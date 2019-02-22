@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"kthw/cmd/common"
 	"kthw/cmd/hcloudclient"
-	"kthw/cmd/network"
-	"kthw/cmd/server"
+	"kthw/cmd/infra/network"
+	"kthw/cmd/infra/server"
+	"kthw/cmd/infra/sshkey"
 	"kthw/cmd/sshconnect"
-	"kthw/cmd/sshkey"
 	"os"
 
 	"github.com/spf13/cobra"

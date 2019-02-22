@@ -1,7 +1,7 @@
 package sshkey_test
 
 import (
-	"kthw/cmd/sshkey"
+	"kthw/cmd/infra/sshkey"
 	"testing"
 )
 

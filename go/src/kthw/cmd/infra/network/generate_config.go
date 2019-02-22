@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"kthw/cmd/server"
+	"kthw/cmd/infra/server"
 	"os"
 	"text/template"
 

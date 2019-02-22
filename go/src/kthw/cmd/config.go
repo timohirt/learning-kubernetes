@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"kthw/cmd/common"
-	"kthw/cmd/server"
-	"kthw/cmd/sshkey"
+	"kthw/cmd/infra/server"
+	"kthw/cmd/infra/sshkey"
 
 	"github.com/spf13/cobra"
 	viper "github.com/spf13/viper"

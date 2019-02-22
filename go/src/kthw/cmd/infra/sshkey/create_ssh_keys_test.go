@@ -2,7 +2,7 @@ package sshkey_test
 
 import (
 	"kthw/cmd/hcloudclient"
-	"kthw/cmd/sshkey"
+	"kthw/cmd/infra/sshkey"
 	"reflect"
 	"testing"
 )

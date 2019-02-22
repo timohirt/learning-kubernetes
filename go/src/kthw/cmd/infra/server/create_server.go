@@ -2,7 +2,7 @@ package server
 
 import (
 	"kthw/cmd/hcloudclient"
-	"kthw/cmd/sshkey"
+	"kthw/cmd/infra/sshkey"
 
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )

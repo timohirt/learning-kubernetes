@@ -1,8 +1,8 @@
 package server_test
 
 import (
-	"kthw/cmd/server"
-	"kthw/cmd/sshkey"
+	"kthw/cmd/infra/server"
+	"kthw/cmd/infra/sshkey"
 	"testing"
 
 	viper "github.com/spf13/viper"

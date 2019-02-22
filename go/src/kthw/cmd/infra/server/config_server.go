@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 	"kthw/cmd/common"
-	"kthw/cmd/sshkey"
+	"kthw/cmd/infra/sshkey"
 
 	viper "github.com/spf13/viper"
 )

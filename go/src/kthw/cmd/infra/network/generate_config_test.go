@@ -1,8 +1,8 @@
 package network_test
 
 import (
-	"kthw/cmd/network"
-	"kthw/cmd/server"
+	"kthw/cmd/infra/network"
+	"kthw/cmd/infra/server"
 	"reflect"
 	"testing"
 )

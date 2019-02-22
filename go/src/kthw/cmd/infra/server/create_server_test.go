@@ -2,8 +2,8 @@ package server_test
 
 import (
 	"kthw/cmd/hcloudclient"
-	"kthw/cmd/server"
-	"kthw/cmd/sshkey"
+	"kthw/cmd/infra/server"
+	"kthw/cmd/infra/sshkey"
 	"reflect"
 	"testing"
 

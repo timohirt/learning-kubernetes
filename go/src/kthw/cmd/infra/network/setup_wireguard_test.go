@@ -3,8 +3,8 @@ package network_test
 import (
 	"fmt"
 	"io"
-	"kthw/cmd/network"
-	"kthw/cmd/server"
+	"kthw/cmd/infra/network"
+	"kthw/cmd/infra/server"
 	"kthw/cmd/sshconnect"
 	"testing"
 )
