@@ -5,6 +5,7 @@ import (
 	"kthw/cmd/common"
 	"kthw/cmd/infra/server"
 	"kthw/cmd/infra/sshkey"
+	"strings"
 
 	"github.com/spf13/cobra"
 	viper "github.com/spf13/viper"
@@ -49,13 +50,27 @@ var addSSHKeyCommand = &cobra.Command{
 	}}
 
 var addServerCommand = &cobra.Command{
-	Use:   "add-server <name>",
+	Use:   "add-server <name> <roles>",
 	Short: "Adds a new server to the config file.",
-	Args:  cobra.ExactArgs(1),
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 2 {
+			return fmt.Errorf("Expected exactly two arguments, but found '%d'", len(args))
+		}
+
+		for _, role := range strings.Split(args[1], ",") {
+			if server.IsValidRole(role) != nil {
+				validRoles := strings.Join(server.AllValidRoles(), ", ")
+				return fmt.Errorf("'%s' is not a valid role. Valid roles are: %s", role, validRoles)
+			}
+		}
+
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		serverName := args[0]
+		roles := strings.Split(args[1], ",")
 
-		err := server.AddServer(serverName)
+		err := server.AddServer(serverName, roles)
 		common.WhenErrPrintAndExit(err)
 
 		err = viper.WriteConfig()

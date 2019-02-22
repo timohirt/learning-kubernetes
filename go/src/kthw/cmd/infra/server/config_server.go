@@ -32,6 +32,7 @@ type Config struct {
 	PublicIP       string
 	PrivateIP      string
 	RootPassword   string
+	Roles          []string
 	SSHPublicKeyID int
 }
 
@@ -42,6 +43,7 @@ func (sc *Config) UpdateConfig() {
 	viper.Set(sc.confLocationNameKey(), sc.LocationName)
 	viper.Set(sc.confImageNameKey(), sc.ImageName)
 	viper.Set(sc.confSSKPublicKeyID(), sc.SSHPublicKeyID)
+	viper.Set(sc.confRoles(), sc.Roles)
 
 	if sc.ID != 0 {
 		viper.Set(sc.confIDKey(), sc.ID)
@@ -127,6 +129,10 @@ func (sc *Config) confRootPasswordKey() string {
 	return fmt.Sprintf("hcloud.server.%s.rootPassword", sc.Name)
 }
 
+func (sc *Config) confRoles() string {
+	return fmt.Sprintf("hcloud.server.%s.roles", sc.Name)
+}
+
 func (sc *Config) confIDKey() string {
 	return fmt.Sprintf("hcloud.server.%s.id", sc.Name)
 }
@@ -162,7 +168,7 @@ func SetHCloudServerDefaults() {
 }
 
 // AddServer uses the first argument as server name and adds this server to the configuration.
-func AddServer(serverName string) error {
+func AddServer(serverName string, roles []string) error {
 	sshKey, err := sshkey.ReadSSHPublicKeyFromConf()
 	if err != nil {
 		return err
@@ -177,7 +183,24 @@ func AddServer(serverName string) error {
 		ServerType:     viper.GetString(confHCloudDefaultServerTypeKey),
 		ImageName:      viper.GetString(confHCloudDefaultImageNameKey),
 		LocationName:   viper.GetString(confHCloudLocationNameKey),
-	}
+		Roles:          roles}
 	serverConf.UpdateConfig()
 	return nil
+}
+
+var validRoles = []string{"controller", "etcd", "worker"}
+
+// IsValidRole return an error if role is not valid.
+func IsValidRole(role string) error {
+	for _, validRole := range validRoles {
+		if role == validRole {
+			return nil
+		}
+	}
+	return fmt.Errorf("Role '%s' is not a valid role", role)
+}
+
+// AllValidRoles returns an array of valid server roles.
+func AllValidRoles() []string {
+	return validRoles
 }

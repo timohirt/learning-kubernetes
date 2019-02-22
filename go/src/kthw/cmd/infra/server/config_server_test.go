@@ -17,7 +17,8 @@ func TestAddServer(t *testing.T) {
 	viper.Reset()
 	key := sshkey.ASSHPublicKeyWithID
 	setupConfig(key)
-	err := server.AddServer("controller-1")
+	initialRoles := []string{"etcd", "worker"}
+	err := server.AddServer("controller-1", initialRoles)
 	if err != nil {
 		t.Fatalf("Enexpected error while adding server to conf: %s", err)
 	}
@@ -46,6 +47,10 @@ func TestAddServer(t *testing.T) {
 		t.Errorf("SSH key id '%d' in config differs from expected key id '%d'", publicKeyID, key.ID)
 	}
 
+	roles := viper.GetStringSlice("hcloud.server.controller-1.roles")
+	if len(roles) != 2 {
+		t.Errorf("Roles expected.")
+	}
 }
 
 func TestAddServerFailIfSSHKeyNotProvisioned(t *testing.T) {
@@ -53,7 +58,8 @@ func TestAddServerFailIfSSHKeyNotProvisioned(t *testing.T) {
 	key := sshkey.ASSHPublicKeyWithID
 	key.ID = 0
 	setupConfig(key)
-	err := server.AddServer("controller-1")
+	roles := []string{"etc", "worker"}
+	err := server.AddServer("controller-1", roles)
 	if err == nil {
 		t.Errorf("Added a server while the SSH key was not created at hcloud. This shouldn't be possible.")
 	}
@@ -162,5 +168,21 @@ func TestReadAllServersFromConfig(t *testing.T) {
 
 	if len(configs) != 2 {
 		t.Errorf("Expected two servers from config, but got only '%d'", len(configs))
+	}
+}
+
+func TestIsValidRole(t *testing.T) {
+	if server.IsValidRole("master") == nil {
+		t.Errorf("Expected error because 'master' is not a valid role")
+	}
+
+	ensureValidRole(t, "controller")
+	ensureValidRole(t, "etcd")
+	ensureValidRole(t, "worker")
+}
+
+func ensureValidRole(t *testing.T, validRole string) {
+	if server.IsValidRole(validRole) != nil {
+		t.Errorf("Got an error for valid role '%s'", validRole)
 	}
 }
