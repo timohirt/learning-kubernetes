@@ -53,7 +53,6 @@ func (sc *Config) UpdateConfig() {
 		viper.Set(sc.confPublicIPKey(), sc.PublicIP)
 	}
 
-	fmt.Printf("Private ip %s, host %s", sc.PrivateIP, sc.Name)
 	if sc.PrivateIP != "" {
 		viper.Set(sc.confPrivateIPKey(), sc.PrivateIP)
 	}

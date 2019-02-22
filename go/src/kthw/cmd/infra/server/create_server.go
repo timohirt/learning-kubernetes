@@ -3,6 +3,7 @@ package server
 import (
 	"kthw/cmd/hcloudclient"
 	"kthw/cmd/infra/sshkey"
+	"strings"
 
 	"github.com/hetznercloud/hcloud-go/hcloud"
 )
@@ -47,6 +48,8 @@ func Create(config Config, client hcloudclient.HCloudOperations) (*Config, error
 	location := &hcloud.Location{Name: config.LocationName}
 	sshKey := &hcloud.SSHKey{ID: sshKeyFromConf.ID}
 	startAfterCreate := true
+	labels := make(map[string]string)
+	labels["roles"] = strings.Join(config.Roles, ",")
 	serverOpts := hcloud.ServerCreateOpts{
 		Name:             config.Name,
 		ServerType:       serverType,
@@ -54,7 +57,8 @@ func Create(config Config, client hcloudclient.HCloudOperations) (*Config, error
 		Location:         location,
 		UserData:         basicCloudInit,
 		SSHKeys:          []*hcloud.SSHKey{sshKey},
-		StartAfterCreate: &startAfterCreate}
+		StartAfterCreate: &startAfterCreate,
+		Labels:           labels}
 
 	serverCreated := client.Create(serverOpts)
 
