@@ -114,6 +114,7 @@ func TestReadConfigNonInitValues(t *testing.T) {
 	viper.Set("hcloud.server.controller-1.publicIP", "irrelevant")
 	viper.Set("hcloud.server.controller-1.rootPassword", "irrelevant")
 	viper.Set("hcloud.server.controller-1.publicKeyId", 17)
+	viper.Set("hcloud.server.controller-1.roles", []string{"etcd", "controller"})
 
 	serverConfig := server.Config{Name: "controller-1"}
 	err := serverConfig.ReadFromConfig()
@@ -135,6 +136,10 @@ func TestReadConfigNonInitValues(t *testing.T) {
 
 	if serverConfig.ID != 42 {
 		t.Errorf("ID was '%d' and differs from expected ID '42'", serverConfig.ID)
+	}
+
+	if len(serverConfig.Roles) != 2 {
+		t.Errorf("Expected 2 roles, but found '%d'", len(serverConfig.Roles))
 	}
 }
 

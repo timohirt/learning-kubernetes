@@ -93,6 +93,7 @@ func (sc *Config) ReadFromConfig() error {
 	sc.ServerType = viper.GetString(sc.confServerTypeKey())
 	sc.ImageName = viper.GetString(sc.confImageNameKey())
 	sc.LocationName = viper.GetString(sc.confLocationNameKey())
+	sc.Roles = viper.GetStringSlice(sc.confRoles())
 	return nil
 }
 
