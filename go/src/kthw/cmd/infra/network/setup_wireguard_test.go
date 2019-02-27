@@ -1,49 +1,14 @@
 package network_test
 
 import (
-	"fmt"
-	"io"
 	"kthw/cmd/infra/network"
 	"kthw/cmd/infra/server"
 	"kthw/cmd/sshconnect"
 	"testing"
 )
 
-type SSHOperationsMock struct {
-	WrittenReadOnlyFiles []ReadOnlyFiles
-	IssuedCommands       []IssuedCommand
-	sshconnect.SSHOperations
-}
-
-type ReadOnlyFiles struct {
-	Host           string
-	FilePathOnHost string
-}
-
-type IssuedCommand struct {
-	Host    string
-	Command string
-}
-
-func NewSSHOperationsMock() *SSHOperationsMock {
-	return &SSHOperationsMock{}
-}
-
-func (s *SSHOperationsMock) RunCmd(host string, command string) (string, error) {
-	s.IssuedCommands = append(s.IssuedCommands, IssuedCommand{Host: host, Command: command})
-	return "", nil
-}
-func (s *SSHOperationsMock) WriteReadOnlyFileTo(host string, contentReader io.Reader, filePathOnHost string) error {
-	s.WrittenReadOnlyFiles = append(s.WrittenReadOnlyFiles, ReadOnlyFiles{Host: host, FilePathOnHost: filePathOnHost})
-	return nil
-}
-
-func (s *SSHOperationsMock) WriteExecutableFileTo(host string, contentReader io.Reader, filePathOnHost string) error {
-	return fmt.Errorf("Not implemented")
-}
-
 func TestSetupWireGuard(t *testing.T) {
-	mock := NewSSHOperationsMock()
+	mock := sshconnect.NewSSHOperationsMock()
 	hostConfigs := []server.Config{
 		server.Config{ID: 1, PublicIP: "192.168.1.1"},
 		server.Config{ID: 2, PublicIP: "192.168.1.2"}}
@@ -61,13 +26,13 @@ func TestSetupWireGuard(t *testing.T) {
 		}
 	}
 
-	if len(mock.IssuedCommands) != 4 {
-		t.Errorf("Expected 4 issued commands during setup, but only '%d' were issued.", len(mock.IssuedCommands))
+	if len(mock.RunCmdCommands) != 4 {
+		t.Errorf("Expected 4 issued commands during setup, but only '%d' were issued.", len(mock.RunCmdCommands))
 	}
 
 	expectedStartWireguardCommand := "systemctl enable wg-quick@wg0 && systemctl restart wg-quick@wg0"
 	expectedUfwCommand := "ufw allow in on wg0"
-	for _, issuedCommand := range mock.IssuedCommands {
+	for _, issuedCommand := range mock.RunCmdCommands {
 		if issuedCommand.Command != expectedStartWireguardCommand && issuedCommand.Command != expectedUfwCommand {
 			t.Errorf("Unexpected command '%s' issued on host '%s'", issuedCommand.Command, issuedCommand.Host)
 		}

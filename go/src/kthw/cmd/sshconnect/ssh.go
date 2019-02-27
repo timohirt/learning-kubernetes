@@ -1,13 +1,13 @@
 package sshconnect
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"kthw/cmd/common"
 	"os"
 	"path"
+	"time"
 
 	"github.com/bramvdbogaerde/go-scp"
 	"golang.org/x/crypto/ssh"
@@ -50,23 +50,61 @@ func loadPrivateKeyFile() ssh.AuthMethod {
 // SSHOperations allow running commands on remote hosts and transferring files.
 type SSHOperations interface {
 	RunCmd(host string, command string) (string, error)
+	RunCmds(commands *Commands) error
 	WriteReadOnlyFileTo(host string, contentReader io.Reader, filePathOnHost string) error
 	WriteExecutableFileTo(host string, contentReader io.Reader, filePathOnHost string) error
 }
 
 // SSHConnect contains sshConfig used to connect to hosts and allows to run commands on a host and copy files via SCP.
 type SSHConnect struct {
-	sshConfig ssh.ClientConfig
+	sshConfig           ssh.ClientConfig
+	logOutputFromServer bool
 	SSHOperations
 }
 
+// Commands contains a arrayof commands to be executed on a remote host.
+type Commands struct {
+	Commands  []Command
+	LogOutput bool
+}
+
+// Command allows to write different types of commands and how those are executed on remote machines.
+type Command interface {
+	GetDescription() string
+	GetHost() string
+	runWith(ssh *SSHConnect) (string, error)
+}
+
+// ShellCommand is a simple command executed on a remote machine via ssh.
+type ShellCommand struct {
+	Command
+	Host        string
+	CommandLine string
+	Description string
+}
+
+// GetHost returns the host the command is executed on.
+func (sc *ShellCommand) GetHost() string {
+	return sc.Host
+}
+
+// GetDescription returns a string used in loggings to show with command was executed.
+func (sc *ShellCommand) GetDescription() string {
+	return sc.Description
+}
+
+func (sc *ShellCommand) runWith(ssh *SSHConnect) (string, error) {
+	return ssh.RunCmd(sc.Host, sc.CommandLine)
+}
+
 // NewSSHConnect created a ssh.ClintConfig for user root and using a private key from ~/.ssh
-func NewSSHConnect() *SSHConnect {
+func NewSSHConnect(logOutputFromServer bool) *SSHConnect {
 	sshConfig := ssh.ClientConfig{
 		User:            "root",
 		Auth:            []ssh.AuthMethod{loadPrivateKeyFile()},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey()}
-	return &SSHConnect{sshConfig: sshConfig}
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         15 * time.Second}
+	return &SSHConnect{sshConfig: sshConfig, logOutputFromServer: logOutputFromServer}
 }
 
 func (c *SSHConnect) connect(host string) (*ssh.Session, error) {
@@ -90,17 +128,31 @@ func (c *SSHConnect) RunCmd(host string, command string) (string, error) {
 	}
 	defer session.Close()
 
-	var stdoutBuf bytes.Buffer
-	var stderrBuf bytes.Buffer
-	session.Stdout = &stdoutBuf
-	session.Stderr = &stderrBuf
-	err = session.Run(command)
+	output, err := session.CombinedOutput(command)
 	if err != nil {
-		errFromServer := stderrBuf.String()
+		errFromServer := string(output)
 		return "", fmt.Errorf("error while running command on remote host. Error output %s. Error %s", errFromServer, err)
 	}
 
-	return stdoutBuf.String(), nil
+	return string(output), nil
+}
+
+// RunCmds runs all commands on a specified remote host. If one command fails, it returns an error.
+func (c *SSHConnect) RunCmds(commands *Commands) error {
+	for _, command := range commands.Commands {
+		result, err := command.runWith(c)
+		if err != nil {
+			fmt.Printf("%s -> Unsuccessful!\n", command.GetDescription())
+			return err
+		}
+
+		if c.logOutputFromServer {
+			fmt.Printf("Command:%s\nResult:%s\n", command.GetDescription(), result)
+		} else {
+			fmt.Println(command.GetDescription())
+		}
+	}
+	return nil
 }
 
 // WriteReadOnlyFileTo connects to host, reads from contentReader and writes it to file at filePathOnHost.
