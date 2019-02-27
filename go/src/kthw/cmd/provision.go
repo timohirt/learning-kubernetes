@@ -57,7 +57,7 @@ var configureWireguardCommand = &cobra.Command{
 	Use:   "network",
 	Short: "Generates wireguard config and establishes private overlay network",
 	Run: func(cmd *cobra.Command, args []string) {
-		sshClient := sshconnect.NewSSHConnect()
+		sshClient := sshconnect.NewSSHConnect(Verbose)
 		serverConfigs, err := server.AllFromConfig()
 		if err != nil {
 			fmt.Printf("Error while loading servers from configuration: %s\n", err)

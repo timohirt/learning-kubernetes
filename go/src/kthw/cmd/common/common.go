@@ -20,3 +20,13 @@ func FileExists(filePath string) bool {
 	}
 	return false
 }
+
+// ArrayContains returns 'true' if value is in arr.
+func ArrayContains(arr []string, value string) bool {
+	for _, elem := range arr {
+		if value == elem {
+			return true
+		}
+	}
+	return false
+}
