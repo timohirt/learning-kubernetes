@@ -7,6 +7,7 @@ import (
 	"kthw/cmd/common"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/bramvdbogaerde/go-scp"
@@ -95,6 +96,30 @@ func (sc *ShellCommand) GetDescription() string {
 
 func (sc *ShellCommand) runWith(ssh *SSHConnect) (string, error) {
 	return ssh.RunCmd(sc.Host, sc.CommandLine)
+}
+
+type CopyFileCommand struct {
+	Command
+	Host        string
+	FileContent string
+	FilePath    string
+	Description string
+}
+
+// GetHost returns the host the command is executed on.
+func (sc *CopyFileCommand) GetHost() string {
+	return sc.Host
+}
+
+// GetDescription returns a string used in loggings to show with command was executed.
+func (sc *CopyFileCommand) GetDescription() string {
+	return sc.Description
+}
+
+func (sc *CopyFileCommand) runWith(ssh *SSHConnect) (string, error) {
+	reader := strings.NewReader(sc.FileContent)
+	err := ssh.WriteReadOnlyFileTo(sc.Host, reader, sc.FilePath)
+	return "", err
 }
 
 // NewSSHConnect created a ssh.ClintConfig for user root and using a private key from ~/.ssh

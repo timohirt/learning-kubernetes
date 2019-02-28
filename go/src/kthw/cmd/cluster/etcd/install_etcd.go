@@ -5,6 +5,7 @@ import (
 	"kthw/cmd/common"
 	"kthw/cmd/infra/server"
 	"kthw/cmd/sshconnect"
+	"os"
 )
 
 func InstallOnHost(hostConfigs []server.Config, ssh sshconnect.SSHOperations) error {
@@ -22,7 +23,8 @@ func InstallOnHost(hostConfigs []server.Config, ssh sshconnect.SSHOperations) er
 		commands := &sshconnect.Commands{
 			Commands: []sshconnect.Command{
 				downloadEtcd(host),
-				unpackAndInstall(host)},
+				unpackAndInstall(host),
+				uploadSystemdService(etcdHost)},
 			LogOutput: true}
 		err := ssh.RunCmds(commands)
 		if err != nil {
@@ -40,6 +42,23 @@ func selectEtcdHosts(hostConfigs []server.Config) []server.Config {
 		}
 	}
 	return etcdHosts
+}
+
+func uploadSystemdService(hostConfig server.Config) *sshconnect.CopyFileCommand {
+	params := EtcdSystemdServiceParameters{
+		PrivateIP: hostConfig.PrivateIP,
+		NodeName:  hostConfig.Name}
+	systemdService, err := GenerateEtcdSystemdService(params)
+	if err != nil {
+		fmt.Printf("Error generating systemd service! %s\n", err)
+		os.Exit(1)
+	}
+
+	return &sshconnect.CopyFileCommand{
+		Host:        hostConfig.PublicIP,
+		FileContent: systemdService,
+		FilePath:    "/etc/systemd/system/etcd.service",
+		Description: "Copy etcd systemd service to host"}
 }
 
 func downloadEtcd(host string) *sshconnect.ShellCommand {

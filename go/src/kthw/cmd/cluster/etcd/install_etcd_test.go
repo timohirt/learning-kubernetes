@@ -46,6 +46,7 @@ func TestInstallEtcd(t *testing.T) {
 
 	ensureCommandIssued(mock.RunCmdsCommands, "Download etcd binary", hostInEtcdRole.PublicIP, t)
 	ensureCommandIssued(mock.RunCmdsCommands, "Untar etcd archive and copy to /usr/local/bin", hostInEtcdRole.PublicIP, t)
+	ensureCommandIssued(mock.RunCmdsCommands, "Copy etcd systemd service to host", hostInEtcdRole.PublicIP, t)
 
 	ensureNoCommandsIssued(mock.RunCmdsCommands, hostConfigs[1].PublicIP, t)
 }
