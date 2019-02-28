@@ -24,7 +24,8 @@ func InstallOnHost(hostConfigs []server.Config, ssh sshconnect.SSHOperations) er
 			Commands: []sshconnect.Command{
 				downloadEtcd(host),
 				unpackAndInstall(host),
-				uploadSystemdService(etcdHost)},
+				uploadSystemdService(etcdHost),
+				enableAndStartEtcdSystemdService(host)},
 			LogOutput: true}
 		err := ssh.RunCmds(commands)
 		if err != nil {
@@ -73,4 +74,11 @@ func unpackAndInstall(host string) *sshconnect.ShellCommand {
 		CommandLine: "tar xzf /tmp/etcd-v3.3.12.tar.gz -C /tmp && mv /tmp/etcd-v3.3.12*/etcd* /usr/local/bin/",
 		Host:        host,
 		Description: "Untar etcd archive and copy to /usr/local/bin"}
+}
+
+func enableAndStartEtcdSystemdService(host string) *sshconnect.ShellCommand {
+	return &sshconnect.ShellCommand{
+		CommandLine: "systemctl daemon-reload && systemctl enable etcd && systemctl restart etcd",
+		Host:        host,
+		Description: "Enable and start etcd service"}
 }
