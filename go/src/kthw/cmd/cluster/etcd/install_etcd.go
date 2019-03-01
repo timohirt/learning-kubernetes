@@ -8,6 +8,8 @@ import (
 	"os"
 )
 
+// InstallOnHost selects hosts with role 'etcd' and installs etcd on it.
+// Currently, only single node clusters are supported.
 func InstallOnHost(hostConfigs []server.Config, ssh sshconnect.SSHOperations) error {
 	etcdHosts := selectEtcdHosts(hostConfigs)
 	if len(etcdHosts) == 0 {
@@ -46,10 +48,10 @@ func selectEtcdHosts(hostConfigs []server.Config) []server.Config {
 }
 
 func uploadSystemdService(hostConfig server.Config) *sshconnect.CopyFileCommand {
-	params := EtcdSystemdServiceParameters{
+	params := SystemdServiceParameters{
 		PrivateIP: hostConfig.PrivateIP,
 		NodeName:  hostConfig.Name}
-	systemdService, err := GenerateEtcdSystemdService(params)
+	systemdService, err := GenerateSystemdService(params)
 	if err != nil {
 		fmt.Printf("Error generating systemd service! %s\n", err)
 		os.Exit(1)

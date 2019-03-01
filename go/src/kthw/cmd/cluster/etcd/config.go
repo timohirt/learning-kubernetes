@@ -6,7 +6,8 @@ import (
 	"text/template"
 )
 
-type EtcdSystemdServiceParameters struct {
+// SystemdServiceParameters parameters used to generate etcs systemd service.
+type SystemdServiceParameters struct {
 	PrivateIP string
 	NodeName  string
 }
@@ -33,8 +34,8 @@ ExecStart=/usr/local/bin/etcd \
 WantedBy=multi-user.target
 `
 
-// GenerateEtcdSystemdService generates a etcd systemd service.
-func GenerateEtcdSystemdService(params EtcdSystemdServiceParameters) (string, error) {
+// GenerateSystemdService generates a etcd systemd service.
+func GenerateSystemdService(params SystemdServiceParameters) (string, error) {
 	tmpl, err := template.New("etcd-service").Parse(etcdSystemdService)
 	if err != nil {
 		return "", err
