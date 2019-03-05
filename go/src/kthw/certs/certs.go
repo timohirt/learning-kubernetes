@@ -32,28 +32,47 @@ type cert struct {
 	PrivateKeyBytes []byte
 	PublicKeyBytes  []byte
 	CertPaths
+	WriteCert
+}
+
+func writeCert(certPaths CertPaths, baseDir string, privateKeyBytes []byte, publicKeyBytes []byte) error {
+	err := ensureDirectoryExists(baseDir)
+	if err != nil {
+		return err
+	}
+	err = writeToFile(privateKeyBytes, certPaths.PrivateKeyPath())
+	if err != nil {
+		return err
+	}
+	return writeToFile(privateKeyBytes, certPaths.PublicKeyPath())
 }
 
 // AdminClientCert has admin client public and private
 type AdminClientCert cert
 
 // PrivateKeyPath gets the path to the admin private key file
-func (a *AdminClientCert) PrivateKeyPath() string { return path.Join(a.BaseDir, "admin-key.pem") }
+func (a *AdminClientCert) PrivateKeyPath() string { return path.Join(a.BaseDir, adminClientKeyFileName) }
 
 // PublicKeyPath gets the path to the admin private key file
-func (a *AdminClientCert) PublicKeyPath() string { return path.Join(a.BaseDir, "admin.pem") }
+func (a *AdminClientCert) PublicKeyPath() string { return path.Join(a.BaseDir, adminClientCertFileName) }
 
-// WriteCert writes public and private key to disk. Put files into BaseDir
-func (a *AdminClientCert) WriteCert() error {
-	err := ensureDirectoryExists(a.BaseDir)
-	if err != nil {
-		return err
-	}
-	err = writeToFile(a.PrivateKeyBytes, a.PrivateKeyPath())
-	if err != nil {
-		return err
-	}
-	return writeToFile(a.PrivateKeyBytes, a.PublicKeyPath())
+// Write writes public and private key of a cert to files
+func (a *AdminClientCert) Write() error {
+	return writeCert(a, a.BaseDir, a.PrivateKeyBytes, a.PrivateKeyBytes)
+}
+
+// EtcdCert represents private and public key of etcd cert.
+type EtcdCert cert
+
+// PrivateKeyPath gets the path to the admin private key file
+func (e *EtcdCert) PrivateKeyPath() string { return path.Join(e.BaseDir, etcdKeyFileName) }
+
+// PublicKeyPath gets the path to the admin private key file
+func (e *EtcdCert) PublicKeyPath() string { return path.Join(e.BaseDir, etcdCertFileName) }
+
+// Write writes public and private key of a cert to files
+func (e *EtcdCert) Write() error {
+	return writeCert(e, e.BaseDir, e.PrivateKeyBytes, e.PrivateKeyBytes)
 }
 
 // CertGenerator generates certificates using a CA
@@ -112,12 +131,23 @@ func (c *CertGenerator) GenAdminClientCertificate() (*AdminClientCert, error) {
 	return adminClientCert, nil
 }
 
+// GenEtcdCertificate generates a admin client certificate using the CA og CertGenerator.
+func (c *CertGenerator) GenEtcdCertificate() (*EtcdCert, error) {
+	req := &csr.CertificateRequest{
+		CN:         etcdCN,
+		KeyRequest: &csr.BasicKeyRequest{A: keyAlgo, S: keySize},
+		Names:      []csr.Name{certName(etcdO)}}
+	privateKeyBytes, publicKeyBytes, _ := c.genPrivateAndPublicKey(req, noHostname)
+	etcdCert := &EtcdCert{BaseDir: certsBaseDir, PrivateKeyBytes: privateKeyBytes, PublicKeyBytes: publicKeyBytes}
+	return etcdCert, nil
+}
+
 func (c *CertGenerator) genPrivateAndPublicKey(req *csr.CertificateRequest, hostname string) (privateKeyBytes []byte, publicKeyBytes []byte, err error) {
 	csrBytes, privateKeyBytes, err := c.genPrivateKey(req)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error while generating private key: %s", err)
 	}
-	publicKeyBytes, err = c.genPublicKey(csrBytes, privateKeyBytes, noHostname)
+	publicKeyBytes, err = c.genPublicKey(csrBytes, privateKeyBytes, hostname)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error while generating public key: %s", err)
 	}

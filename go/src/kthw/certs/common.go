@@ -18,7 +18,7 @@ const (
 	caKeyFileName  = "ca-key.pem"
 	caCertFileName = "ca.pem"
 
-	certsBaseDir = "client-server-certs"
+	certsBaseDir = "pki"
 
 	signingProfile = "kubernetes"
 	signingExpiry  = "8760h"
@@ -27,6 +27,11 @@ const (
 	adminClientO            = "system:masters"
 	adminClientKeyFileName  = "admin-key.pem"
 	adminClientCertFileName = "admin.pem"
+
+	etcdCN           = "etcd"
+	etcdO            = "Kubernetes"
+	etcdKeyFileName  = "etcd-key.pem"
+	etcdCertFileName = "etcd.pem"
 )
 
 func certName(o string) csr.Name {
