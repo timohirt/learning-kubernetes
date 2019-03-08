@@ -35,17 +35,13 @@ var genAdminCertificateCommand = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		certGenerator, err := certs.NewCertGenerator(caCerts)
+		certGenerator, err := certs.NewCertGenerator(caCerts, conf)
 		if err != nil {
 			fmt.Printf("Error while creating certificate generator: %s\n", err)
 			os.Exit(1)
 		}
-		adminCert, err := certGenerator.GenAdminClientCertificate()
-		if err != nil {
-			fmt.Printf("Error while generating admin cert: %s\n", err)
-			os.Exit(1)
-		}
-		adminCert.Write()
+
+		generateAndWriteAdminClientCert(certGenerator)
 	}}
 
 var genEtcdCertificateCommand = &cobra.Command{
@@ -57,17 +53,13 @@ var genEtcdCertificateCommand = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		certGenerator, err := certs.NewCertGenerator(caCerts)
+		certGenerator, err := certs.NewCertGenerator(caCerts, conf)
 		if err != nil {
 			fmt.Printf("Error while creating certificate generator: %s\n", err)
 			os.Exit(1)
 		}
-		etcdCert, err := certGenerator.GenEtcdCertificate()
-		if err != nil {
-			fmt.Printf("Error while generating etcd cert: %s", err)
-			os.Exit(1)
-		}
-		etcdCert.Write()
+
+		generateAndWriteEtcdCert(certGenerator)
 	}}
 
 var genAllCertificatesCommand = &cobra.Command{
@@ -87,28 +79,35 @@ var genAllCertificatesCommand = &cobra.Command{
 			}
 		}
 
-		certGenerator, err := certs.NewCertGenerator(caCerts)
+		certGenerator, err := certs.NewCertGenerator(caCerts, conf)
 		if err != nil {
 			fmt.Printf("Error while creating certificate generator: %s\n", err)
 			os.Exit(1)
 		}
 
-		fmt.Printf("Generating admin certificate.\n")
-		adminCert, err := certGenerator.GenAdminClientCertificate()
-		if err != nil {
-			fmt.Printf("Error while generating admin cert: %s\n", err)
-			os.Exit(1)
-		}
-		adminCert.Write()
-
-		fmt.Printf("Generating etcd certificate.\n")
-		etcdCert, err := certGenerator.GenEtcdCertificate()
-		if err != nil {
-			fmt.Printf("Error while generating etcd cert: %s\n", err)
-			os.Exit(1)
-		}
-		etcdCert.Write()
+		generateAndWriteAdminClientCert(certGenerator)
+		generateAndWriteEtcdCert(certGenerator)
 	}}
+
+func generateAndWriteAdminClientCert(certGenerator *certs.CertGenerator) {
+	fmt.Printf("Generating admin certificate.\n")
+	adminCert, err := certGenerator.GenAdminClientCertificate()
+	if err != nil {
+		fmt.Printf("Error while generating admin cert: %s\n", err)
+		os.Exit(1)
+	}
+	adminCert.Write()
+}
+
+func generateAndWriteEtcdCert(certGenerator *certs.CertGenerator) {
+	fmt.Printf("Generating etcd certificate.\n")
+	etcdCert, err := certGenerator.GenEtcdCertificate()
+	if err != nil {
+		fmt.Printf("Error while generating etcd cert: %s\n", err)
+		os.Exit(1)
+	}
+	etcdCert.Write()
+}
 
 func certsCommands() *cobra.Command {
 	certsCommand.AddCommand(initCACommand)

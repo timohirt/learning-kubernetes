@@ -44,7 +44,7 @@ func writeCert(certPaths CertPaths, baseDir string, privateKeyBytes []byte, publ
 	if err != nil {
 		return err
 	}
-	return writeToFile(privateKeyBytes, certPaths.PublicKeyPath())
+	return writeToFile(publicKeyBytes, certPaths.PublicKeyPath())
 }
 
 // AdminClientCert has admin client public and private
@@ -58,7 +58,27 @@ func (a *AdminClientCert) PublicKeyPath() string { return path.Join(a.BaseDir, a
 
 // Write writes public and private key of a cert to files
 func (a *AdminClientCert) Write() error {
-	return writeCert(a, a.BaseDir, a.PrivateKeyBytes, a.PrivateKeyBytes)
+	return writeCert(a, a.BaseDir, a.PrivateKeyBytes, a.PublicKeyBytes)
+}
+
+// LoadAdminClientCert loads private and public key of a admin client certificate
+func LoadAdminClientCert(config Config) (*AdminClientCert, error) {
+	cert := AdminClientCert{
+		BaseDir: config.BaseDir}
+
+	privateKeyBytes, err := readFromFile(cert.PrivateKeyPath())
+	if err != nil {
+		return nil, fmt.Errorf("Could not load private key: '%s'", err)
+	}
+	cert.PrivateKeyBytes = privateKeyBytes
+
+	publicKeyBytes, err := readFromFile(cert.PublicKeyPath())
+	if err != nil {
+		return nil, fmt.Errorf("Could not load private key: '%s'", err)
+	}
+	cert.PublicKeyBytes = publicKeyBytes
+
+	return &cert, nil
 }
 
 // EtcdCert represents private and public key of etcd cert.
@@ -72,7 +92,27 @@ func (e *EtcdCert) PublicKeyPath() string { return path.Join(e.BaseDir, etcdCert
 
 // Write writes public and private key of a cert to files
 func (e *EtcdCert) Write() error {
-	return writeCert(e, e.BaseDir, e.PrivateKeyBytes, e.PrivateKeyBytes)
+	return writeCert(e, e.BaseDir, e.PrivateKeyBytes, e.PublicKeyBytes)
+}
+
+// LoadEtcdCert loads private and public key of a etcd certificate
+func LoadEtcdCert(config Config) (*EtcdCert, error) {
+	cert := EtcdCert{
+		BaseDir: config.BaseDir}
+
+	privateKeyBytes, err := readFromFile(cert.PrivateKeyPath())
+	if err != nil {
+		return nil, fmt.Errorf("Could not load private key: '%s'", err)
+	}
+	cert.PrivateKeyBytes = privateKeyBytes
+
+	publicKeyBytes, err := readFromFile(cert.PublicKeyPath())
+	if err != nil {
+		return nil, fmt.Errorf("Could not load private key: '%s'", err)
+	}
+	cert.PublicKeyBytes = publicKeyBytes
+
+	return &cert, nil
 }
 
 // CertGenerator generates certificates using a CA
@@ -81,10 +121,11 @@ type CertGenerator struct {
 	caKey       crypto.Signer
 	caCert      *x509.Certificate
 	signingConf *config.Signing
+	certsConf   Config
 }
 
 // NewCertGenerator creates a CertGenerator using given CACerts
-func NewCertGenerator(ca *CACerts) (*CertGenerator, error) {
+func NewCertGenerator(ca *CACerts, certsConf Config) (*CertGenerator, error) {
 	if ca.CA == nil {
 		return nil, fmt.Errorf("CACerts not porpery initiated. Either InitCA or LoadCA")
 	}
@@ -115,7 +156,8 @@ func NewCertGenerator(ca *CACerts) (*CertGenerator, error) {
 		caCerts:     ca,
 		caKey:       caKey,
 		caCert:      caCert,
-		signingConf: signingConf}, nil
+		signingConf: signingConf,
+		certsConf:   certsConf}, nil
 }
 
 const noHostname string = ""
@@ -127,7 +169,7 @@ func (c *CertGenerator) GenAdminClientCertificate() (*AdminClientCert, error) {
 		KeyRequest: &csr.BasicKeyRequest{A: keyAlgo, S: keySize},
 		Names:      []csr.Name{certName(adminClientO)}}
 	privateKeyBytes, publicKeyBytes, _ := c.genPrivateAndPublicKey(req, noHostname)
-	adminClientCert := &AdminClientCert{BaseDir: certsBaseDir, PrivateKeyBytes: privateKeyBytes, PublicKeyBytes: publicKeyBytes}
+	adminClientCert := &AdminClientCert{BaseDir: c.certsConf.BaseDir, PrivateKeyBytes: privateKeyBytes, PublicKeyBytes: publicKeyBytes}
 	return adminClientCert, nil
 }
 
@@ -138,7 +180,7 @@ func (c *CertGenerator) GenEtcdCertificate() (*EtcdCert, error) {
 		KeyRequest: &csr.BasicKeyRequest{A: keyAlgo, S: keySize},
 		Names:      []csr.Name{certName(etcdO)}}
 	privateKeyBytes, publicKeyBytes, _ := c.genPrivateAndPublicKey(req, noHostname)
-	etcdCert := &EtcdCert{BaseDir: certsBaseDir, PrivateKeyBytes: privateKeyBytes, PublicKeyBytes: publicKeyBytes}
+	etcdCert := &EtcdCert{BaseDir: c.certsConf.BaseDir, PrivateKeyBytes: privateKeyBytes, PublicKeyBytes: publicKeyBytes}
 	return etcdCert, nil
 }
 

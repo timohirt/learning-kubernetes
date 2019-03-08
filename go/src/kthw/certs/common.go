@@ -53,6 +53,14 @@ func writeToFile(cert []byte, file string) error {
 	return err
 }
 
+func readFromFile(file string) ([]byte, error) {
+	bytes, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, fmt.Errorf("Error reading private key file '%s': %s", file, err)
+	}
+	return bytes, nil
+}
+
 func ensureDirectoryExists(dir string) error {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		err = os.MkdirAll(dir, 0755)
