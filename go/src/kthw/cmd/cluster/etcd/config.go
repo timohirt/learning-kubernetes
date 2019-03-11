@@ -25,10 +25,12 @@ ExecStart=/usr/local/bin/etcd \
   --name {{.NodeName}} \
   --data-dir /var/lib/etcd \
   --listen-client-urls "http://{{.PrivateIP}}:2379,http://localhost:2379" \
-  --advertise-client-urls "http://{{.PrivateIP}}:2379"
+  --advertise-client-urls "http://{{.PrivateIP}}:2379" \
   --initial-cluster "{{.NodeName}}=http://localhost:2380" \
   --heartbeat-interval 200 \
-  --election-timeout 5000
+  --election-timeout 5000 \
+  --cert-file /etc/kubernetes/pki/etcd.pem \
+  --key-file /etc/kubernetes/pki/etcd-key.pem
 
 [Install]
 WantedBy=multi-user.target

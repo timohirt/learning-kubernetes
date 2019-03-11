@@ -7,7 +7,6 @@ import (
 	"kthw/cmd/common"
 	"os"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/bramvdbogaerde/go-scp"
@@ -101,7 +100,7 @@ func (sc *ShellCommand) runWith(ssh *SSHConnect) (string, error) {
 type CopyFileCommand struct {
 	Command
 	Host        string
-	FileContent string
+	FileContent io.Reader
 	FilePath    string
 	Description string
 }
@@ -117,8 +116,7 @@ func (sc *CopyFileCommand) GetDescription() string {
 }
 
 func (sc *CopyFileCommand) runWith(ssh *SSHConnect) (string, error) {
-	reader := strings.NewReader(sc.FileContent)
-	err := ssh.WriteReadOnlyFileTo(sc.Host, reader, sc.FilePath)
+	err := ssh.WriteReadOnlyFileTo(sc.Host, sc.FileContent, sc.FilePath)
 	return "", err
 }
 

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"kthw/certs"
 	"kthw/cmd/cluster/etcd"
 	"kthw/cmd/infra/server"
 	"kthw/cmd/sshconnect"
@@ -25,7 +26,13 @@ var installEtcdCommand = &cobra.Command{
 			os.Exit(1)
 		}
 
-		err = etcd.InstallOnHost(serverConfigs, sshClient)
+		certGenerator, err := certs.LoadCertGenerator()
+		if err != nil {
+			fmt.Printf("Error while creating certificate generator: %s\n", err)
+			os.Exit(1)
+		}
+
+		err = etcd.InstallOnHost(serverConfigs, sshClient, certGenerator)
 		if err != nil {
 			fmt.Printf("Error while installing etcd: %s\n", err)
 		}

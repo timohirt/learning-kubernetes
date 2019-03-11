@@ -1,16 +1,19 @@
 package etcd
 
 import (
+	"bytes"
 	"fmt"
+	"kthw/certs"
 	"kthw/cmd/common"
 	"kthw/cmd/infra/server"
 	"kthw/cmd/sshconnect"
 	"os"
+	"strings"
 )
 
 // InstallOnHost selects hosts with role 'etcd' and installs etcd on it.
 // Currently, only single node clusters are supported.
-func InstallOnHost(hostConfigs []server.Config, ssh sshconnect.SSHOperations) error {
+func InstallOnHost(hostConfigs []server.Config, ssh sshconnect.SSHOperations, generateCerts certs.GeneratesCerts) error {
 	etcdHosts := selectEtcdHosts(hostConfigs)
 	if len(etcdHosts) == 0 {
 		return fmt.Errorf("List of provided hosts didn't contain a host with role etcd")
@@ -22,14 +25,22 @@ func InstallOnHost(hostConfigs []server.Config, ssh sshconnect.SSHOperations) er
 
 	for _, etcdHost := range etcdHosts {
 		host := etcdHost.PublicIP
+		certHostnames := []string{"localhost", etcdHost.PrivateIP}
+		etcdCert, err := generateCerts.GenEtcdCertificate(certHostnames)
+		if err != nil {
+			return fmt.Errorf("Error while generating etcd certificate: %s", err)
+		}
 		commands := &sshconnect.Commands{
 			Commands: []sshconnect.Command{
 				downloadEtcd(host),
 				unpackAndInstall(host),
+				uploadEtcdCertPrivateKey(host, etcdCert),
+				uploadEtcdCertPublicKey(host, etcdCert),
+				uploadCAPublicKey(host, generateCerts.GetCA()),
 				uploadSystemdService(etcdHost),
 				enableAndStartEtcdSystemdService(host)},
 			LogOutput: true}
-		err := ssh.RunCmds(commands)
+		err = ssh.RunCmds(commands)
 		if err != nil {
 			return err
 		}
@@ -47,6 +58,30 @@ func selectEtcdHosts(hostConfigs []server.Config) []server.Config {
 	return etcdHosts
 }
 
+func uploadEtcdCertPublicKey(host string, etcdCert *certs.EtcdCert) *sshconnect.CopyFileCommand {
+	return &sshconnect.CopyFileCommand{
+		Host:        host,
+		FileContent: bytes.NewReader(etcdCert.PublicKeyBytes),
+		FilePath:    "/etc/kubernetes/pki/etcd.pem",
+		Description: "Upload etcd certificate public key to /etc/kubernetes/pki/etcd.pem"}
+}
+
+func uploadEtcdCertPrivateKey(host string, etcdCert *certs.EtcdCert) *sshconnect.CopyFileCommand {
+	return &sshconnect.CopyFileCommand{
+		Host:        host,
+		FileContent: bytes.NewReader(etcdCert.PrivateKeyBytes),
+		FilePath:    "/etc/kubernetes/pki/etcd-key.pem",
+		Description: "Upload etcd certificate private key to /etc/kubernetes/pki/etcd-key.pem"}
+}
+
+func uploadCAPublicKey(host string, ca *certs.CA) *sshconnect.CopyFileCommand {
+	return &sshconnect.CopyFileCommand{
+		Host:        host,
+		FileContent: bytes.NewReader(ca.CertBytes),
+		FilePath:    "/etc/kubernetes/pki/ca.pem",
+		Description: "Upload CA certificate public key to /etc/kubernetes/pki/ca.pem"}
+}
+
 func uploadSystemdService(hostConfig server.Config) *sshconnect.CopyFileCommand {
 	params := SystemdServiceParameters{
 		PrivateIP: hostConfig.PrivateIP,
@@ -59,7 +94,7 @@ func uploadSystemdService(hostConfig server.Config) *sshconnect.CopyFileCommand 
 
 	return &sshconnect.CopyFileCommand{
 		Host:        hostConfig.PublicIP,
-		FileContent: systemdService,
+		FileContent: strings.NewReader(systemdService),
 		FilePath:    "/etc/systemd/system/etcd.service",
 		Description: "Copy etcd systemd service to host"}
 }

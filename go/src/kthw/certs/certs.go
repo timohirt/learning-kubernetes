@@ -90,38 +90,21 @@ func (e *EtcdCert) PrivateKeyPath() string { return path.Join(e.BaseDir, etcdKey
 // PublicKeyPath gets the path to the admin private key file
 func (e *EtcdCert) PublicKeyPath() string { return path.Join(e.BaseDir, etcdCertFileName) }
 
-// Write writes public and private key of a cert to files
-func (e *EtcdCert) Write() error {
-	return writeCert(e, e.BaseDir, e.PrivateKeyBytes, e.PublicKeyBytes)
-}
-
-// LoadEtcdCert loads private and public key of a etcd certificate
-func LoadEtcdCert(config Config) (*EtcdCert, error) {
-	cert := EtcdCert{
-		BaseDir: config.BaseDir}
-
-	privateKeyBytes, err := readFromFile(cert.PrivateKeyPath())
-	if err != nil {
-		return nil, fmt.Errorf("Could not load private key: '%s'", err)
-	}
-	cert.PrivateKeyBytes = privateKeyBytes
-
-	publicKeyBytes, err := readFromFile(cert.PublicKeyPath())
-	if err != nil {
-		return nil, fmt.Errorf("Could not load private key: '%s'", err)
-	}
-	cert.PublicKeyBytes = publicKeyBytes
-
-	return &cert, nil
-}
-
 // CertGenerator generates certificates using a CA
 type CertGenerator struct {
-	caCerts     *CACerts
+	CACerts     *CACerts
 	caKey       crypto.Signer
 	caCert      *x509.Certificate
 	signingConf *config.Signing
 	certsConf   Config
+	GeneratesCerts
+}
+
+// GeneratesCerts gets a CA and generates different certificates
+type GeneratesCerts interface {
+	GetCA() *CA
+	GenAdminClientCertificate() (*AdminClientCert, error)
+	GenEtcdCertificate(hosts []string) (*EtcdCert, error)
 }
 
 // NewCertGenerator creates a CertGenerator using given CACerts
@@ -153,12 +136,30 @@ func NewCertGenerator(ca *CACerts, certsConf Config) (*CertGenerator, error) {
 		},
 	}
 	return &CertGenerator{
-		caCerts:     ca,
+		CACerts:     ca,
 		caKey:       caKey,
 		caCert:      caCert,
 		signingConf: signingConf,
 		certsConf:   certsConf}, nil
 }
+
+// LoadCertGenerator loads a existing CA and creates a CertGenerator.
+func LoadCertGenerator() (*CertGenerator, error) {
+	conf := ReadConfig()
+	caCerts, err := LoadCACerts(conf)
+	if err != nil {
+		return nil, fmt.Errorf("Error while loading CA. %s", err)
+	}
+
+	certGenerator, err := NewCertGenerator(caCerts, conf)
+	if err != nil {
+		return nil, fmt.Errorf("Error while creating certificate generator: %s", err)
+	}
+	return certGenerator, nil
+}
+
+// GetCA returns the CA used to generate certificates
+func (c *CertGenerator) GetCA() *CA { return c.CACerts.CA }
 
 const noHostname string = ""
 
@@ -174,11 +175,12 @@ func (c *CertGenerator) GenAdminClientCertificate() (*AdminClientCert, error) {
 }
 
 // GenEtcdCertificate generates a admin client certificate using the CA og CertGenerator.
-func (c *CertGenerator) GenEtcdCertificate() (*EtcdCert, error) {
+func (c *CertGenerator) GenEtcdCertificate(hosts []string) (*EtcdCert, error) {
 	req := &csr.CertificateRequest{
 		CN:         etcdCN,
 		KeyRequest: &csr.BasicKeyRequest{A: keyAlgo, S: keySize},
-		Names:      []csr.Name{certName(etcdO)}}
+		Names:      []csr.Name{certName(etcdO)},
+		Hosts:      hosts}
 	privateKeyBytes, publicKeyBytes, _ := c.genPrivateAndPublicKey(req, noHostname)
 	etcdCert := &EtcdCert{BaseDir: c.certsConf.BaseDir, PrivateKeyBytes: privateKeyBytes, PublicKeyBytes: publicKeyBytes}
 	return etcdCert, nil

@@ -59,43 +59,17 @@ func TestGenerateWriteReadAdminClientCert(t *testing.T) {
 	}
 }
 
-func TestGenerateWriteReadEtcdCert(t *testing.T) {
-	certGenerator, certsConfig := createCertGenerator(t)
+func TestGenerateEtcdCert(t *testing.T) {
+	certGenerator, _ := createCertGenerator(t)
 
-	etcdCert, err := certGenerator.GenEtcdCertificate()
+	etcdCert, err := certGenerator.GenEtcdCertificate([]string{"localhost"})
 	helperFailIfErr(t, "Error while generating Etcd certificate", err)
 
 	if etcdCert.PrivateKeyBytes == nil {
 		t.Fatal("etcd private key not generated")
 	}
 
-	if etcdCert.PrivateKeyPath() != path.Join(etcdCert.BaseDir, "etcd-key.pem") {
-		t.Fatalf("Private key path wrong. Should be '$baseDir/etcd-key.pem'.")
-	}
-
 	if etcdCert.PublicKeyBytes == nil {
 		t.Fatal("etcd pubic key not generated")
-	}
-
-	if etcdCert.PublicKeyPath() != path.Join(etcdCert.BaseDir, "etcd.pem") {
-		t.Fatalf("Public key path wrong. Should be '$baseDir/etcd.pem'.")
-	}
-
-	err = etcdCert.Write()
-	if err != nil {
-		t.Errorf("Error while writing etcd certificate: '%s'", err)
-	}
-
-	loadedCert, err := certs.LoadEtcdCert(certsConfig)
-	if err != nil {
-		t.Errorf("Error while loading etcd certificate: '%s'", err)
-	}
-
-	if !reflect.DeepEqual(loadedCert.PrivateKeyBytes, etcdCert.PrivateKeyBytes) {
-		t.Error("Private key of loaded etcd cert differs from key generated and written to file.")
-	}
-
-	if !reflect.DeepEqual(loadedCert.PublicKeyBytes, etcdCert.PublicKeyBytes) {
-		t.Error("Public key of loaded etcd cert differs from key generated and written to file.")
 	}
 }
