@@ -11,22 +11,40 @@ func SetupWireguard(sshOperations sshconnect.SSHOperations, servers []server.Con
 	wgConfs, _ := GenerateWireguardConf(servers)
 	updatedServerConfig := []server.Config{}
 	for _, hostConf := range wgConfs.WgHosts {
-		sshIP := hostConf.PublicIP
+		hostIP := hostConf.PublicIP
 		conf, _ := hostConf.generateServerConf()
-		reader := strings.NewReader(conf)
-		err := sshOperations.WriteReadOnlyFileTo(sshIP, reader, "/etc/wireguard/wg0.conf")
-		if err != nil {
-			return nil, err
-		}
-		_, err = sshOperations.RunCmd(sshIP, "systemctl enable wg-quick@wg0 && systemctl restart wg-quick@wg0")
-		if err != nil {
-			return nil, err
-		}
-		_, err = sshOperations.RunCmd(sshIP, "ufw allow in on wg0")
-		if err != nil {
-			return nil, err
-		}
+
+		commands := &sshconnect.Commands{
+			Commands: []sshconnect.Command{
+				uploadConfigFile(hostIP, conf),
+				openFirewall(hostIP),
+				startDevice(hostIP)},
+			LogOutput: true}
+
+		sshOperations.RunCmds(commands)
 		updatedServerConfig = append(updatedServerConfig, hostConf.ServerConfig)
 	}
 	return updatedServerConfig, nil
+}
+
+func openFirewall(host string) *sshconnect.ShellCommand {
+	return &sshconnect.ShellCommand{
+		Host:        host,
+		CommandLine: "ufw allow in on wg0",
+		Description: "Open firewall for private overlay network"}
+}
+
+func startDevice(host string) *sshconnect.ShellCommand {
+	return &sshconnect.ShellCommand{
+		Host:        host,
+		CommandLine: "systemctl enable wg-quick@wg0 && systemctl restart wg-quick@wg0",
+		Description: "Start wireguard device 'wg0'"}
+}
+
+func uploadConfigFile(host string, configFile string) *sshconnect.CopyFileCommand {
+	return &sshconnect.CopyFileCommand{
+		Host:        host,
+		FileContent: strings.NewReader(configFile),
+		FilePath:    "/etc/wireguard/wg0.conf",
+		Description: "Upload wireguard config file of device 'wg0'"}
 }

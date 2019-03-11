@@ -3,11 +3,11 @@ package sshconnect
 import (
 	"fmt"
 	"io"
+	"testing"
 )
 
 type SSHOperationsMock struct {
 	WrittenReadOnlyFiles []ReadOnlyFiles
-	RunCmdCommands       []IssuedCommand
 	RunCmdsCommands      []Command
 	SSHOperations
 }
@@ -17,18 +17,8 @@ type ReadOnlyFiles struct {
 	FilePathOnHost string
 }
 
-type IssuedCommand struct {
-	Host    string
-	Command string
-}
-
 func NewSSHOperationsMock() *SSHOperationsMock {
 	return &SSHOperationsMock{}
-}
-
-func (s *SSHOperationsMock) RunCmd(host string, command string) (string, error) {
-	s.RunCmdCommands = append(s.RunCmdCommands, IssuedCommand{Host: host, Command: command})
-	return "", nil
 }
 
 func (s *SSHOperationsMock) RunCmds(commands *Commands) error {
@@ -45,4 +35,21 @@ func (s *SSHOperationsMock) WriteReadOnlyFileTo(host string, contentReader io.Re
 
 func (s *SSHOperationsMock) WriteExecutableFileTo(host string, contentReader io.Reader, filePathOnHost string) error {
 	return fmt.Errorf("Not implemented")
+}
+
+func EnsureNoCommandsIssued(issuedCommands []Command, host string, t *testing.T) {
+	for _, issuedCommand := range issuedCommands {
+		if issuedCommand.GetHost() == host {
+			t.Errorf("No commands for host '%s' expected, but found some.", host)
+		}
+	}
+}
+
+func EnsureCommandIssued(issuedCommands []Command, commandDescription string, host string, t *testing.T) {
+	for _, issuedCommand := range issuedCommands {
+		if issuedCommand.GetHost() == host && issuedCommand.GetDescription() == commandDescription {
+			return
+		}
+	}
+	t.Errorf("Command '%s' was not executed on host '%s'", commandDescription, host)
 }

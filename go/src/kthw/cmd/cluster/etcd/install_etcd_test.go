@@ -49,35 +49,18 @@ func TestInstallEtcd(t *testing.T) {
 	}
 
 	if !generatesCerts.isEtcdCertGenerated {
-		t.Errorf("etcd certificate wasn't generated.")
+		t.Errorf("etcd certificate was not generated\n")
 	}
 
-	ensureCommandIssued(mock.RunCmdsCommands, "Download etcd binary", hostInEtcdRole.PublicIP, t)
-	ensureCommandIssued(mock.RunCmdsCommands, "Upload etcd certificate public key to /etc/kubernetes/pki/etcd.pem", hostInEtcdRole.PublicIP, t)
-	ensureCommandIssued(mock.RunCmdsCommands, "Upload etcd certificate private key to /etc/kubernetes/pki/etcd-key.pem", hostInEtcdRole.PublicIP, t)
-	ensureCommandIssued(mock.RunCmdsCommands, "Upload CA certificate public key to /etc/kubernetes/pki/ca.pem", hostInEtcdRole.PublicIP, t)
-	ensureCommandIssued(mock.RunCmdsCommands, "Untar etcd archive and copy to /usr/local/bin", hostInEtcdRole.PublicIP, t)
-	ensureCommandIssued(mock.RunCmdsCommands, "Copy etcd systemd service to host", hostInEtcdRole.PublicIP, t)
-	ensureCommandIssued(mock.RunCmdsCommands, "Enable and start etcd service", hostInEtcdRole.PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Download etcd binary", hostInEtcdRole.PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Upload etcd certificate public key to /etc/kubernetes/pki/etcd.pem", hostInEtcdRole.PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Upload etcd certificate private key to /etc/kubernetes/pki/etcd-key.pem", hostInEtcdRole.PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Upload CA certificate public key to /etc/kubernetes/pki/ca.pem", hostInEtcdRole.PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Untar etcd archive and copy to /usr/local/bin", hostInEtcdRole.PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Copy etcd systemd service to host", hostInEtcdRole.PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Enable and start etcd service", hostInEtcdRole.PublicIP, t)
 
-	ensureNoCommandsIssued(mock.RunCmdsCommands, hostConfigs[1].PublicIP, t)
-}
-
-func ensureNoCommandsIssued(issuedCommands []sshconnect.Command, host string, t *testing.T) {
-	for _, issuedCommand := range issuedCommands {
-		if issuedCommand.GetHost() == host {
-			t.Errorf("No commands for host '%s' expected, but found some.", host)
-		}
-	}
-}
-
-func ensureCommandIssued(issuedCommands []sshconnect.Command, commandDescription string, host string, t *testing.T) {
-	for _, issuedCommand := range issuedCommands {
-		if issuedCommand.GetHost() == host && issuedCommand.GetDescription() == commandDescription {
-			return
-		}
-	}
-	t.Errorf("Command '%s' was not executed on host '%s'", commandDescription, host)
+	sshconnect.EnsureNoCommandsIssued(mock.RunCmdsCommands, hostConfigs[1].PublicIP, t)
 }
 
 type GeneratesCertsMock struct {

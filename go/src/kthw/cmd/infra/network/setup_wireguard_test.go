@@ -15,26 +15,11 @@ func TestSetupWireGuard(t *testing.T) {
 
 	network.SetupWireguard(mock, hostConfigs)
 
-	if len(mock.WrittenReadOnlyFiles) != 2 {
-		t.Errorf("Expected two files to be written, but '%d' were written.", len(mock.WrittenReadOnlyFiles))
-	}
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Upload wireguard config file of device 'wg0'", hostConfigs[0].PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Open firewall for private overlay network", hostConfigs[0].PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Start wireguard device 'wg0'", hostConfigs[0].PublicIP, t)
 
-	expectedFilePath := "/etc/wireguard/wg0.conf"
-	for _, writtenReadOnlyFile := range mock.WrittenReadOnlyFiles {
-		if writtenReadOnlyFile.FilePathOnHost != expectedFilePath {
-			t.Errorf("Expected file path '%s', but was '%s' for host '%s'.", expectedFilePath, writtenReadOnlyFile.FilePathOnHost, writtenReadOnlyFile.Host)
-		}
-	}
-
-	if len(mock.RunCmdCommands) != 4 {
-		t.Errorf("Expected 4 issued commands during setup, but only '%d' were issued.", len(mock.RunCmdCommands))
-	}
-
-	expectedStartWireguardCommand := "systemctl enable wg-quick@wg0 && systemctl restart wg-quick@wg0"
-	expectedUfwCommand := "ufw allow in on wg0"
-	for _, issuedCommand := range mock.RunCmdCommands {
-		if issuedCommand.Command != expectedStartWireguardCommand && issuedCommand.Command != expectedUfwCommand {
-			t.Errorf("Unexpected command '%s' issued on host '%s'", issuedCommand.Command, issuedCommand.Host)
-		}
-	}
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Upload wireguard config file of device 'wg0'", hostConfigs[1].PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Open firewall for private overlay network", hostConfigs[1].PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Start wireguard device 'wg0'", hostConfigs[1].PublicIP, t)
 }

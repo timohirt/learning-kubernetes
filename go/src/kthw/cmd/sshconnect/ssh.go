@@ -49,7 +49,6 @@ func loadPrivateKeyFile() ssh.AuthMethod {
 
 // SSHOperations allow running commands on remote hosts and transferring files.
 type SSHOperations interface {
-	RunCmd(host string, command string) (string, error)
 	RunCmds(commands *Commands) error
 	WriteReadOnlyFileTo(host string, contentReader io.Reader, filePathOnHost string) error
 	WriteExecutableFileTo(host string, contentReader io.Reader, filePathOnHost string) error
