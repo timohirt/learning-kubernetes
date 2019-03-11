@@ -18,6 +18,9 @@ apt:
     wireguard-ppa.list:
       source: "ppa:wireguard/wireguard"
       keyid: 504A1A25
+    kubernetes.list:
+      source: "dep [arch=amd64] https://apt.kubernetes.io/ kubernetes-xenial main"
+      keyid: BA07F4FB				
 apt_update: true
 apt_upgrade: true
 apt_reboot_if_required: true 
@@ -29,10 +32,15 @@ packages:
   - curl
   - software-properties-common
   - [docker-ce, 18.06.1~ce~3-0~ubuntu]
+  - kubelet
+  -	kubeadm
+  - kubectl
 runcmd:
   - [ sudo, ufw, allow, 22/tcp ]
   - [ sudo, ufw, allow, 51820/udp ]
   - [ sudo, ufw, enable ]
+  - [ swapoff, -a ]
+  - [ apt-mark, hold, kubelet, kubeadm, kubectl, docker-ce ]	
 `
 
 // Create creates a server in hcloud using the provided config. Public ip and
