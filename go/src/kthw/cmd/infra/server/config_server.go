@@ -146,16 +146,16 @@ func FromConfig(serverName string) Config {
 }
 
 // AllFromConfig reads Config of all servers from configuration.
-func AllFromConfig() ([]Config, error) {
+func AllFromConfig() ([]*Config, error) {
 	serverNames := viper.GetStringMapString(confHCloudServersKey)
 	if len(serverNames) < 1 {
 		return nil, fmt.Errorf("no servers fond in config")
 	}
 
-	serverConfigs := make([]Config, 0)
+	serverConfigs := make([]*Config, 0)
 	for name := range serverNames {
 		current := FromConfig(name)
-		serverConfigs = append(serverConfigs, current)
+		serverConfigs = append(serverConfigs, &current)
 	}
 	return serverConfigs, nil
 }

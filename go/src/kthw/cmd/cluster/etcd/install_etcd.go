@@ -13,7 +13,7 @@ import (
 
 // InstallOnHost selects hosts with role 'etcd' and installs etcd on it.
 // Currently, only single node clusters are supported.
-func InstallOnHost(hostConfigs []server.Config, ssh sshconnect.SSHOperations, generateCerts certs.GeneratesCerts) error {
+func InstallOnHost(hostConfigs []*server.Config, ssh sshconnect.SSHOperations, generateCerts certs.GeneratesCerts) error {
 	etcdHosts := selectEtcdHosts(hostConfigs)
 	if len(etcdHosts) == 0 {
 		return fmt.Errorf("List of provided hosts didn't contain a host with role etcd")
@@ -48,8 +48,8 @@ func InstallOnHost(hostConfigs []server.Config, ssh sshconnect.SSHOperations, ge
 	return nil
 }
 
-func selectEtcdHosts(hostConfigs []server.Config) []server.Config {
-	var etcdHosts []server.Config
+func selectEtcdHosts(hostConfigs []*server.Config) []*server.Config {
+	var etcdHosts []*server.Config
 	for _, host := range hostConfigs {
 		if common.ArrayContains(host.Roles, "etcd") {
 			etcdHosts = append(etcdHosts, host)
@@ -82,7 +82,7 @@ func uploadCAPublicKey(host string, ca *certs.CA) *sshconnect.CopyFileCommand {
 		Description: "Upload CA certificate public key to /etc/kubernetes/pki/ca.pem"}
 }
 
-func uploadSystemdService(hostConfig server.Config) *sshconnect.CopyFileCommand {
+func uploadSystemdService(hostConfig *server.Config) *sshconnect.CopyFileCommand {
 	params := SystemdServiceParameters{
 		PrivateIP: hostConfig.PrivateIP,
 		NodeName:  hostConfig.Name}

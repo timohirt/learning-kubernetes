@@ -12,7 +12,7 @@ import (
 )
 
 var clusterCommand = &cobra.Command{
-	Use:   "install",
+	Use:   "cluster",
 	Short: "Commands for installing K8S cluster"}
 
 var installEtcdCommand = &cobra.Command{

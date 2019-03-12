@@ -49,6 +49,7 @@ func loadPrivateKeyFile() ssh.AuthMethod {
 
 // SSHOperations allow running commands on remote hosts and transferring files.
 type SSHOperations interface {
+	RunCmd(command Command, logOutput bool) (string, error)
 	RunCmds(commands *Commands) error
 	WriteReadOnlyFileTo(host string, contentReader io.Reader, filePathOnHost string) error
 	WriteExecutableFileTo(host string, contentReader io.Reader, filePathOnHost string) error
@@ -93,7 +94,7 @@ func (sc *ShellCommand) GetDescription() string {
 }
 
 func (sc *ShellCommand) runWith(ssh *SSHConnect) (string, error) {
-	return ssh.RunCmd(sc.Host, sc.CommandLine)
+	return ssh.runCmd(sc.Host, sc.CommandLine)
 }
 
 type CopyFileCommand struct {
@@ -143,7 +144,7 @@ func (c *SSHConnect) connect(host string) (*ssh.Session, error) {
 }
 
 // RunCmd connects to host, runs command on this host and returns its output.
-func (c *SSHConnect) RunCmd(host string, command string) (string, error) {
+func (c *SSHConnect) runCmd(host string, command string) (string, error) {
 	session, err := c.connect(host)
 	if err != nil {
 		return "", err
@@ -157,6 +158,17 @@ func (c *SSHConnect) RunCmd(host string, command string) (string, error) {
 	}
 
 	return string(output), nil
+}
+
+func (c *SSHConnect) RunCmd(command Command, logOutput bool) (string, error) {
+	result, err := command.runWith(c)
+
+	if c.logOutputFromServer || logOutput {
+		fmt.Printf("Command:%s\nResult:%s\nErr:%s\n", command.GetDescription(), result, err)
+	} else {
+		fmt.Println(command.GetDescription())
+	}
+	return result, err
 }
 
 // RunCmds runs all commands on a specified remote host. If one command fails, it returns an error.

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"kthw/cmd/common"
 	"kthw/cmd/hcloudclient"
-	"kthw/cmd/infra/network"
 	"kthw/cmd/infra/server"
 	"kthw/cmd/infra/sshkey"
 	"kthw/cmd/sshconnect"
@@ -25,12 +24,7 @@ var createServerCommand = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		serverName := args[0]
 		serverConfig := server.FromConfig(serverName)
-		hcloudClient := hcloudclient.NewHCloudClient(APIToken)
-		updatedConfig, err := server.Create(serverConfig, hcloudClient)
-		common.WhenErrPrintAndExit(err)
-
-		updatedConfig.UpdateConfig()
-		viper.WriteConfig()
+		createServerAndUpdateConfig(&serverConfig)
 
 		fmt.Printf("Server %s successfully created.\n", serverName)
 	}}
@@ -64,16 +58,7 @@ var configureWireguardCommand = &cobra.Command{
 			os.Exit(1)
 		}
 
-		updatedServerConfigs, err := network.SetupWireguard(sshClient, serverConfigs)
-		if err != nil {
-			fmt.Printf("Error which running command: %s\n", err)
-			os.Exit(1)
-		}
-		for _, config := range updatedServerConfigs {
-			config.UpdateConfig()
-			fmt.Printf("Wireguard set up on %s.\n", config.Name)
-		}
-		viper.WriteConfig()
+		setupWireguardAndUpdateConfig(serverConfigs, sshClient)
 	}}
 
 func provisionCommands() *cobra.Command {

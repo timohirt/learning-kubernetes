@@ -8,7 +8,7 @@ import (
 )
 
 func TestGenerateConfigWithOneHost(t *testing.T) {
-	serverConfigs := []server.Config{server.Config{ID: 1, PublicIP: "192.168.1.1"}}
+	serverConfigs := []*server.Config{&server.Config{ID: 1, PublicIP: "192.168.1.1"}}
 
 	wgConfs, err := network.GenerateWireguardConf(serverConfigs)
 	if err != nil {
@@ -21,10 +21,10 @@ func TestGenerateConfigWithOneHost(t *testing.T) {
 }
 
 func TestGenerateConfigWithThreeHosts(t *testing.T) {
-	hostConfigs := []server.Config{
-		server.Config{ID: 1, PublicIP: "192.168.1.1"},
-		server.Config{ID: 2, PublicIP: "192.168.1.2"},
-		server.Config{ID: 3, PublicIP: "192.168.1.3"}}
+	hostConfigs := []*server.Config{
+		&server.Config{ID: 1, PublicIP: "192.168.1.1"},
+		&server.Config{ID: 2, PublicIP: "192.168.1.2"},
+		&server.Config{ID: 3, PublicIP: "192.168.1.3"}}
 
 	wgConf, err := network.GenerateWireguardConf(hostConfigs)
 	if err != nil {
@@ -87,7 +87,7 @@ func ensureHostHasPeer(host *network.Host, peerHosts []*network.Host, t *testing
 	}
 }
 
-func ensurePrivateIPIsSet(conf server.Config, t *testing.T) {
+func ensurePrivateIPIsSet(conf *server.Config, t *testing.T) {
 	if conf.PrivateIP == "" {
 		t.Fatalf("PrivateIP of server %d not set", conf.ID)
 	}

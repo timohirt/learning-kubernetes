@@ -32,7 +32,7 @@ type Host struct {
 	PrivateKey   string
 	PublicKey    string
 	Peers        []Peer
-	ServerConfig server.Config
+	ServerConfig *server.Config
 }
 
 // ToPeer generates a Peer from the fields of a Host
@@ -73,7 +73,7 @@ type WgConf struct {
 }
 
 // GenerateWireguardConf generates wireguard configuration for all servers passed on.
-func GenerateWireguardConf(servers []server.Config) (*WgConf, error) {
+func GenerateWireguardConf(servers []*server.Config) (*WgConf, error) {
 	hosts := genAndAddKeys(servers)
 
 	peers := newPeers(hosts)
@@ -118,7 +118,7 @@ func (i *internalIPGenerator) nextIP() string {
 	return fmt.Sprintf("10.0.0.%d", i.IPCount)
 }
 
-func genAndAddKeys(serverConfigs []server.Config) []*Host {
+func genAndAddKeys(serverConfigs []*server.Config) []*Host {
 	ipGen := internalIPGenerator{}
 	results := make([]*Host, len(serverConfigs))
 	for count, conf := range serverConfigs {

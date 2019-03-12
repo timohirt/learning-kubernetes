@@ -4,7 +4,6 @@ import (
 	"kthw/cmd/hcloudclient"
 	"kthw/cmd/infra/server"
 	"kthw/cmd/infra/sshkey"
-	"reflect"
 	"testing"
 
 	viper "github.com/spf13/viper"
@@ -12,10 +11,9 @@ import (
 
 func setupTestCreateServer() (*hcloudclient.CreateServerResults, *hcloudclient.MockHCloudOperations, server.Config) {
 	createServerResult := &hcloudclient.CreateServerResults{
-		ID:           42,
-		PublicIP:     "10.0.0.1",
-		RootPassword: "Passw0rt",
-		DNSName:      "m1.hetzner.com"}
+		ID:       42,
+		PublicIP: "10.0.0.1",
+		DNSName:  "m1.hetzner.com"}
 	hcloudClient := &hcloudclient.MockHCloudOperations{
 		CreateServerResults: createServerResult}
 	config := server.Config{
@@ -31,18 +29,20 @@ func TestCreateServer(t *testing.T) {
 	sshKey := sshkey.ASSHPublicKeyWithIDInConfig()
 	createServerResult, hcloudClient, serverConfig := setupTestCreateServer()
 
-	updatedConfig, err := server.Create(serverConfig, hcloudClient)
+	err := server.Create(&serverConfig, hcloudClient)
 	if err != nil {
 		t.Errorf("Error while creating server: %s", err)
 	}
 
-	serverConfig.RootPassword = createServerResult.RootPassword
-	serverConfig.PublicIP = createServerResult.PublicIP
-	serverConfig.SSHPublicKeyID = sshKey.ID
-	serverConfig.ID = createServerResult.ID
+	if serverConfig.PublicIP != createServerResult.PublicIP {
+		t.Errorf("No public IP set, but expected IP '%s'", createServerResult.PublicIP)
+	}
+	if serverConfig.SSHPublicKeyID != sshKey.ID {
+		t.Errorf("No ssh key id set, but expected ID '%d'", sshKey.ID)
+	}
 
-	if !reflect.DeepEqual(serverConfig, *updatedConfig) {
-		t.Errorf("Expected config differs from actual config")
+	if serverConfig.ID != createServerResult.ID {
+		t.Errorf("No server ID set, but expected ID '%d'", createServerResult.ID)
 	}
 }
 
@@ -50,7 +50,7 @@ func TestCreateServerWhenThereIsNoSSHPublicKeyInConfig(t *testing.T) {
 	viper.Reset()
 	_, hcloudClient, serverConfig := setupTestCreateServer()
 
-	_, err := server.Create(serverConfig, hcloudClient)
+	err := server.Create(&serverConfig, hcloudClient)
 	if err == nil {
 		t.Errorf("A error should be returned as there is no SSH public key in config")
 	}

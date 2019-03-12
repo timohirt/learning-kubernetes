@@ -7,9 +7,8 @@ import (
 )
 
 // SetupWireguard generated wireguard config for each server and copies it using SCP.
-func SetupWireguard(sshOperations sshconnect.SSHOperations, servers []server.Config) ([]server.Config, error) {
+func SetupWireguard(sshOperations sshconnect.SSHOperations, servers []*server.Config) error {
 	wgConfs, _ := GenerateWireguardConf(servers)
-	updatedServerConfig := []server.Config{}
 	for _, hostConf := range wgConfs.WgHosts {
 		hostIP := hostConf.PublicIP
 		conf, _ := hostConf.generateServerConf()
@@ -22,9 +21,8 @@ func SetupWireguard(sshOperations sshconnect.SSHOperations, servers []server.Con
 			LogOutput: true}
 
 		sshOperations.RunCmds(commands)
-		updatedServerConfig = append(updatedServerConfig, hostConf.ServerConfig)
 	}
-	return updatedServerConfig, nil
+	return nil
 }
 
 func openFirewall(host string) *sshconnect.ShellCommand {

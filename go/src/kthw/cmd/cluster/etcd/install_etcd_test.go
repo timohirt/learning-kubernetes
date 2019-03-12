@@ -11,8 +11,8 @@ import (
 
 func TestFailInstallEtcdIfNoHostsWithRoleEtcdExist(t *testing.T) {
 	mock := sshconnect.NewSSHOperationsMock()
-	hostConfigs := []server.Config{
-		server.Config{ID: 1, PublicIP: "192.168.1.2", Roles: []string{"controller"}}}
+	hostConfigs := []*server.Config{
+		&server.Config{ID: 1, PublicIP: "192.168.1.2", Roles: []string{"controller"}}}
 
 	generatesCerts := NewGeneratesCertsMock()
 	err := etcd.InstallOnHost(hostConfigs, mock, generatesCerts)
@@ -24,9 +24,9 @@ func TestFailInstallEtcdIfNoHostsWithRoleEtcdExist(t *testing.T) {
 
 func TestFailInstallEtcdIfNoSingleNodeCluster(t *testing.T) {
 	mock := sshconnect.NewSSHOperationsMock()
-	hostConfigs := []server.Config{
-		server.Config{ID: 1, PublicIP: "192.168.1.1", Roles: []string{"etcd"}},
-		server.Config{ID: 2, PublicIP: "192.168.1.2", Roles: []string{"etcd"}}}
+	hostConfigs := []*server.Config{
+		&server.Config{ID: 1, PublicIP: "192.168.1.1", Roles: []string{"etcd"}},
+		&server.Config{ID: 2, PublicIP: "192.168.1.2", Roles: []string{"etcd"}}}
 
 	err := etcd.InstallOnHost(hostConfigs, mock, NewGeneratesCertsMock())
 
@@ -37,10 +37,10 @@ func TestFailInstallEtcdIfNoSingleNodeCluster(t *testing.T) {
 
 func TestInstallEtcd(t *testing.T) {
 	mock := sshconnect.NewSSHOperationsMock()
-	hostInEtcdRole := server.Config{ID: 1, PublicIP: "192.168.1.1", Roles: []string{"etcd", "worker"}}
-	hostConfigs := []server.Config{
+	hostInEtcdRole := &server.Config{ID: 1, PublicIP: "192.168.1.1", Roles: []string{"etcd", "worker"}}
+	hostConfigs := []*server.Config{
 		hostInEtcdRole,
-		server.Config{ID: 2, PublicIP: "192.168.1.2", Roles: []string{"controller"}}}
+		&server.Config{ID: 2, PublicIP: "192.168.1.2", Roles: []string{"controller"}}}
 
 	generatesCerts := NewGeneratesCertsMock()
 	err := etcd.InstallOnHost(hostConfigs, mock, generatesCerts)
