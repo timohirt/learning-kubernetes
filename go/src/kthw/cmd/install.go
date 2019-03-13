@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"kthw/certs"
+	"kthw/cmd/common"
 	"kthw/cmd/infra/server"
 	"kthw/cmd/sshconnect"
 	"sync"
@@ -17,6 +19,9 @@ var kubernetesCluster = &cobra.Command{
 	Short: "Install a non HA cluster",
 	Run: func(cmd *cobra.Command, args []string) {
 		sshClient := sshconnect.NewSSHConnect(Verbose)
+		certGenerator, err := certs.LoadCertGenerator()
+		common.WhenErrPrintAndExit(err)
+
 		serverConfigs, _ := server.AllFromConfig()
 		for _, conf := range serverConfigs {
 			createServerAndUpdateConfig(conf)
@@ -32,6 +37,7 @@ var kubernetesCluster = &cobra.Command{
 		waitGroup.Wait()
 
 		setupWireguardAndUpdateConfig(serverConfigs, sshClient)
+		installEtcd(serverConfigs, sshClient, certGenerator)
 	}}
 
 func installCommands() *cobra.Command {

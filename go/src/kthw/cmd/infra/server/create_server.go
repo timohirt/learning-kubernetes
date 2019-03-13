@@ -41,6 +41,7 @@ runcmd:
   - [ sudo, ufw, allow, 51820/udp ]
   - [ sudo, ufw, enable ]
   - [ swapoff, -a ]
+  - [ mkdir, -p, /etc/kubernetes/pki ]
   - [ apt-mark, hold, kubelet, kubeadm, kubectl, docker-ce ]
 `
 

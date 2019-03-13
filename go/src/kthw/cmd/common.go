@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"kthw/certs"
+	"kthw/cmd/cluster/etcd"
 	"kthw/cmd/common"
 	"kthw/cmd/hcloudclient"
 	"kthw/cmd/infra/network"
@@ -33,6 +35,13 @@ func setupWireguardAndUpdateConfig(configs []*server.Config, sshClient sshconnec
 		fmt.Printf("Wireguard set up on %s.\n", config.Name)
 	}
 	viper.WriteConfig()
+}
+
+func installEtcd(configs []*server.Config, sshClient sshconnect.SSHOperations, certGenerator certs.GeneratesCerts) {
+	fmt.Println("Installing etcd")
+
+	err := etcd.InstallOnHost(configs, sshClient, certGenerator)
+	common.WhenErrPrintAndExit(err)
 }
 
 func waitForCloudInitCompleted(waitGroup *sync.WaitGroup, conf *server.Config, sshClient sshconnect.SSHOperations) {
