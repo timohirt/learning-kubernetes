@@ -15,8 +15,8 @@ const (
 	keyAlgo = "rsa"
 
 	caCN           = "Kubernetes"
-	caKeyFileName  = "ca-key.pem"
-	caCertFileName = "ca.pem"
+	caKeyFileName  = "ca.key"
+	caCertFileName = "ca.crt"
 
 	certsBaseDir = "pki"
 
@@ -25,13 +25,15 @@ const (
 
 	adminClientCN           = "admin"
 	adminClientO            = "system:masters"
-	adminClientKeyFileName  = "admin-key.pem"
-	adminClientCertFileName = "admin.pem"
+	adminClientKeyFileName  = "admin.key"
+	adminClientCertFileName = "admin.crt"
 
-	etcdCN           = "etcd"
-	etcdO            = "Kubernetes"
-	etcdKeyFileName  = "etcd-key.pem"
-	etcdCertFileName = "etcd.pem"
+	etcdCN                 = "etcd"
+	etcdO                  = "Kubernetes"
+	etcdKeyFileName        = "etcd.key"
+	etcdCertFileName       = "etcd.crt"
+	etcdClientKeyFileName  = "etcd-client.key"
+	etcdClientCertFileName = "etcd-client.crt"
 )
 
 func certName(o string) csr.Name {

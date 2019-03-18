@@ -81,7 +81,8 @@ func LoadAdminClientCert(config Config) (*AdminClientCert, error) {
 	return &cert, nil
 }
 
-// EtcdCert represents private and public key of etcd cert.
+// EtcdCert represents private and public key of etcd cert. This
+// certificate is used for SSL.
 type EtcdCert cert
 
 // PrivateKeyPath gets the path to the admin private key file
@@ -89,6 +90,16 @@ func (e *EtcdCert) PrivateKeyPath() string { return path.Join(e.BaseDir, etcdKey
 
 // PublicKeyPath gets the path to the admin private key file
 func (e *EtcdCert) PublicKeyPath() string { return path.Join(e.BaseDir, etcdCertFileName) }
+
+// EtcdClientCert private and public key used by clients to access
+// a etcd cluster which uses client auth.
+type EtcdClientCert cert
+
+// PrivateKeyPath gets the path to the admin private key file
+func (e *EtcdClientCert) PrivateKeyPath() string { return path.Join(e.BaseDir, etcdClientKeyFileName) }
+
+// PublicKeyPath gets the path to the admin private key file
+func (e *EtcdClientCert) PublicKeyPath() string { return path.Join(e.BaseDir, etcdClientCertFileName) }
 
 // CertGenerator generates certificates using a CA
 type CertGenerator struct {

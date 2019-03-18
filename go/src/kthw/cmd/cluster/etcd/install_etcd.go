@@ -62,24 +62,24 @@ func uploadEtcdCertPublicKey(host string, etcdCert *certs.EtcdCert) *sshconnect.
 	return &sshconnect.CopyFileCommand{
 		Host:        host,
 		FileContent: bytes.NewReader(etcdCert.PublicKeyBytes),
-		FilePath:    "/etc/kubernetes/pki/etcd.pem",
-		Description: "Upload etcd certificate public key to /etc/kubernetes/pki/etcd.pem"}
+		FilePath:    "/etc/kubernetes/pki/etcd.crt",
+		Description: "Upload etcd certificate public key to /etc/kubernetes/pki/etcd.crt"}
 }
 
 func uploadEtcdCertPrivateKey(host string, etcdCert *certs.EtcdCert) *sshconnect.CopyFileCommand {
 	return &sshconnect.CopyFileCommand{
 		Host:        host,
 		FileContent: bytes.NewReader(etcdCert.PrivateKeyBytes),
-		FilePath:    "/etc/kubernetes/pki/etcd-key.pem",
-		Description: "Upload etcd certificate private key to /etc/kubernetes/pki/etcd-key.pem"}
+		FilePath:    "/etc/kubernetes/pki/etcd.key",
+		Description: "Upload etcd certificate private key to /etc/kubernetes/pki/etcd.key"}
 }
 
 func uploadCAPublicKey(host string, ca *certs.CA) *sshconnect.CopyFileCommand {
 	return &sshconnect.CopyFileCommand{
 		Host:        host,
 		FileContent: bytes.NewReader(ca.CertBytes),
-		FilePath:    "/etc/kubernetes/pki/ca.pem",
-		Description: "Upload CA certificate public key to /etc/kubernetes/pki/ca.pem"}
+		FilePath:    "/etc/kubernetes/pki/ca.crt",
+		Description: "Upload CA certificate public key to /etc/kubernetes/pki/ca.crt"}
 }
 
 func uploadSystemdService(hostConfig *server.Config) *sshconnect.CopyFileCommand {

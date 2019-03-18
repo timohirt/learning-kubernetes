@@ -28,16 +28,16 @@ func TestGenerateWriteReadAdminClientCert(t *testing.T) {
 		t.Fatal("Admin client private key not generated")
 	}
 
-	if adminClientCert.PrivateKeyPath() != path.Join(adminClientCert.BaseDir, "admin-key.pem") {
-		t.Fatalf("Private key path wrong. Should be '$baseDir/admin-key.pem'.")
+	if adminClientCert.PrivateKeyPath() != path.Join(adminClientCert.BaseDir, "admin.key") {
+		t.Fatalf("Private key path wrong. Should be '$baseDir/admin.key'.")
 	}
 
 	if adminClientCert.PublicKeyBytes == nil {
 		t.Fatal("Admin client pubic key not generated")
 	}
 
-	if adminClientCert.PublicKeyPath() != path.Join(adminClientCert.BaseDir, "admin.pem") {
-		t.Fatalf("Public key path wrong. Should be '$baseDir/admin.pem'.")
+	if adminClientCert.PublicKeyPath() != path.Join(adminClientCert.BaseDir, "admin.crt") {
+		t.Fatalf("Public key path wrong. Should be '$baseDir/admin.crt'.")
 	}
 
 	err = adminClientCert.Write()
@@ -71,5 +71,13 @@ func TestGenerateEtcdCert(t *testing.T) {
 
 	if etcdCert.PublicKeyBytes == nil {
 		t.Fatal("etcd pubic key not generated")
+	}
+
+	if etcdCert.PublicKeyPath() != path.Join(etcdCert.BaseDir, "etcd.crt") {
+		t.Fatalf("Public key path wrong. Should be '$baseDir/etcd.crt'.")
+	}
+
+	if etcdCert.PrivateKeyPath() != path.Join(etcdCert.BaseDir, "etcd.key") {
+		t.Fatalf("Private key path wrong. Should be '$baseDir/etcd.key'.")
 	}
 }
