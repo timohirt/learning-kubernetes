@@ -81,3 +81,26 @@ func TestGenerateEtcdCert(t *testing.T) {
 		t.Fatalf("Private key path wrong. Should be '$baseDir/etcd.key'.")
 	}
 }
+
+func TestGenerateEtcdClientCert(t *testing.T) {
+	certGenerator, _ := createCertGenerator(t)
+
+	etcdClientCert, err := certGenerator.GenEtcdClientCertificate()
+	helperFailIfErr(t, "Error while generating Etcd client certificate", err)
+
+	if etcdClientCert.PrivateKeyBytes == nil {
+		t.Fatal("etcd client private key not generated")
+	}
+
+	if etcdClientCert.PublicKeyBytes == nil {
+		t.Fatal("etcd client pubic key not generated")
+	}
+
+	if etcdClientCert.PublicKeyPath() != path.Join(etcdClientCert.BaseDir, "etcd-client.crt") {
+		t.Fatalf("Public key path wrong. Should be '$baseDir/etcd-client.crt'.")
+	}
+
+	if etcdClientCert.PrivateKeyPath() != path.Join(etcdClientCert.BaseDir, "etcd-client.key") {
+		t.Fatalf("Private key path wrong. Should be '$baseDir/etcd-client.key'.")
+	}
+}

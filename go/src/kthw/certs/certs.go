@@ -101,6 +101,31 @@ func (e *EtcdClientCert) PrivateKeyPath() string { return path.Join(e.BaseDir, e
 // PublicKeyPath gets the path to the admin private key file
 func (e *EtcdClientCert) PublicKeyPath() string { return path.Join(e.BaseDir, etcdClientCertFileName) }
 
+// Write writes public and private key of a cert to files
+func (e *EtcdClientCert) Write() error {
+	return writeCert(e, e.BaseDir, e.PrivateKeyBytes, e.PublicKeyBytes)
+}
+
+// LoadEtcdClientCert loads private and public key of a admin client certificate
+func LoadEtcdClientCert(config Config) (*EtcdClientCert, error) {
+	cert := EtcdClientCert{
+		BaseDir: config.BaseDir}
+
+	privateKeyBytes, err := readFromFile(cert.PrivateKeyPath())
+	if err != nil {
+		return nil, fmt.Errorf("Could not load private key: '%s'", err)
+	}
+	cert.PrivateKeyBytes = privateKeyBytes
+
+	publicKeyBytes, err := readFromFile(cert.PublicKeyPath())
+	if err != nil {
+		return nil, fmt.Errorf("Could not load private key: '%s'", err)
+	}
+	cert.PublicKeyBytes = publicKeyBytes
+
+	return &cert, nil
+}
+
 // CertGenerator generates certificates using a CA
 type CertGenerator struct {
 	CACerts     *CACerts
@@ -185,7 +210,7 @@ func (c *CertGenerator) GenAdminClientCertificate() (*AdminClientCert, error) {
 	return adminClientCert, nil
 }
 
-// GenEtcdCertificate generates a admin client certificate using the CA og CertGenerator.
+// GenEtcdCertificate generates a etcd server certificate using the CA og CertGenerator.
 func (c *CertGenerator) GenEtcdCertificate(hosts []string) (*EtcdCert, error) {
 	req := &csr.CertificateRequest{
 		CN:         etcdCN,
@@ -194,6 +219,17 @@ func (c *CertGenerator) GenEtcdCertificate(hosts []string) (*EtcdCert, error) {
 		Hosts:      hosts}
 	privateKeyBytes, publicKeyBytes, _ := c.genPrivateAndPublicKey(req, noHostname)
 	etcdCert := &EtcdCert{BaseDir: c.certsConf.BaseDir, PrivateKeyBytes: privateKeyBytes, PublicKeyBytes: publicKeyBytes}
+	return etcdCert, nil
+}
+
+// GenEtcdClientCertificate generates a etcd client certificate using the CA og CertGenerator.
+func (c *CertGenerator) GenEtcdClientCertificate() (*EtcdClientCert, error) {
+	req := &csr.CertificateRequest{
+		CN:         noHostname,
+		KeyRequest: &csr.BasicKeyRequest{A: keyAlgo, S: keySize},
+		Names:      []csr.Name{certName(etcdO)}}
+	privateKeyBytes, publicKeyBytes, _ := c.genPrivateAndPublicKey(req, noHostname)
+	etcdCert := &EtcdClientCert{BaseDir: c.certsConf.BaseDir, PrivateKeyBytes: privateKeyBytes, PublicKeyBytes: publicKeyBytes}
 	return etcdCert, nil
 }
 
