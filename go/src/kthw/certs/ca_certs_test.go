@@ -109,8 +109,7 @@ func helperCreateDefaultCACerts(t *testing.T) (*certs.CACerts, string) {
 	tempDirName, err := ioutil.TempDir("", "InitCA")
 	helperFailIfErr(t, "Error creating temp dir: %s", err)
 
-	config := certs.Config{BaseDir: tempDirName}
-	defaultCaCerts := certs.DefaultCACerts(config)
+	defaultCaCerts := certs.DefaultCACerts(tempDirName)
 
 	return defaultCaCerts, tempDirName
 }

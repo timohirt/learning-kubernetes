@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"kthw/certs"
-	"log"
+	"kthw/cmd/common"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -16,7 +16,7 @@ var initCACommand = &cobra.Command{
 	Short: "Generates CA public and private key",
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := certs.ReadConfig()
-		caCerts := certs.DefaultCACerts(conf)
+		caCerts := certs.DefaultCACerts(conf.BaseDir)
 		err := caCerts.InitCa()
 		if err != nil {
 			fmt.Printf("Error while initiation CA: %s\n", err)
@@ -30,17 +30,7 @@ var genAdminCertificateCommand = &cobra.Command{
 	Use:   "gen-admin-cert",
 	Short: "Generates admin certificate",
 	Run: func(cmd *cobra.Command, args []string) {
-		conf := certs.ReadConfig()
-		caCerts, err := certs.LoadCACerts(conf)
-		if err != nil {
-			log.Fatal(err)
-		}
-		certGenerator, err := certs.NewCertGenerator(caCerts, conf)
-		if err != nil {
-			fmt.Printf("Error while creating certificate generator: %s\n", err)
-			os.Exit(1)
-		}
-
+		certGenerator := newCertificateGenerator()
 		generateAndWriteAdminClientCert(certGenerator)
 	}}
 
@@ -48,17 +38,7 @@ var genEtcdClientCertificateCommand = &cobra.Command{
 	Use:   "gen-etcd-client-cert",
 	Short: "Generates etcd client certificate",
 	Run: func(cmd *cobra.Command, args []string) {
-		conf := certs.ReadConfig()
-		caCerts, err := certs.LoadCACerts(conf)
-		if err != nil {
-			log.Fatal(err)
-		}
-		certGenerator, err := certs.NewCertGenerator(caCerts, conf)
-		if err != nil {
-			fmt.Printf("Error while creating certificate generator: %s\n", err)
-			os.Exit(1)
-		}
-
+		certGenerator := newCertificateGenerator()
 		generateAndWriteEtcdClientCert(certGenerator)
 	}}
 
@@ -68,18 +48,20 @@ var genAllCertificatesCommand = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := certs.ReadConfig()
 		fmt.Printf("Loading CA from %s.\n", conf.BaseDir)
-		caCerts, err := certs.LoadCACerts(conf)
+		certLoader := certs.NewDefaultCertificateLoader()
+		ca, err := certLoader.LoadCA()
 		if err != nil {
 			fmt.Printf("CA not found. Generating new CA.\n")
-			caCerts = certs.DefaultCACerts(conf)
+			caCerts := certs.DefaultCACerts(conf.BaseDir)
 			err = caCerts.InitCa()
 			if err != nil {
 				fmt.Printf("Initializing CA failed. %s\n", err)
 				os.Exit(1)
 			}
+			ca = caCerts.CA
 		}
 
-		certGenerator, err := certs.NewCertGenerator(caCerts, conf)
+		certGenerator, err := certs.NewCertGenerator(ca, conf)
 		if err != nil {
 			fmt.Printf("Error while creating certificate generator: %s\n", err)
 			os.Exit(1)
@@ -106,6 +88,16 @@ func generateAndWriteEtcdClientCert(certGenerator *certs.CertGenerator) {
 		os.Exit(1)
 	}
 	etcdClientCert.Write()
+}
+
+func newCertificateGenerator() *certs.CertGenerator {
+	ca, err := certs.NewDefaultCertificateLoader().LoadCA()
+	common.WhenErrPrintAndExit(err)
+
+	conf := certs.ReadConfig()
+	certGenerator, err := certs.NewCertGenerator(ca, conf)
+	common.WhenErrPrintAndExit(err)
+	return certGenerator
 }
 
 func certsCommands() *cobra.Command {

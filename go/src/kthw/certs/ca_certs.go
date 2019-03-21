@@ -31,11 +31,11 @@ func (c *CACerts) CNPrivateKeyFile() string { return path.Join(c.CABaseDir, caKe
 func (c *CACerts) CNPublicKeyFile() string { return path.Join(c.CABaseDir, caCertFileName) }
 
 // DefaultCACerts initializes Certs with default parameters.
-func DefaultCACerts(config Config) *CACerts {
+func DefaultCACerts(baseDir string) *CACerts {
 	caConf := &csr.CAConfig{PathLength: 0, PathLenZero: true, Expiry: signingExpiry}
 	return &CACerts{
 		CAKeySize: keySize,
-		CABaseDir: config.BaseDir,
+		CABaseDir: baseDir,
 		cAConf:    caConf,
 		cACsr: &csr.CertificateRequest{
 			CN:         caCN,
@@ -46,9 +46,9 @@ func DefaultCACerts(config Config) *CACerts {
 
 // LoadCACerts creats a CACerts and load the certificates from disk.
 // InitCA must be called previously.
-func LoadCACerts(config Config) (*CACerts, error) {
+func LoadCACerts(baseDir string) (*CACerts, error) {
 
-	caCerts := DefaultCACerts(config)
+	caCerts := DefaultCACerts(baseDir)
 	err := caCerts.LoadCA()
 	if err != nil {
 		return nil, fmt.Errorf("Error while loading CA from disk. Did you call InitCA before? %s", err)

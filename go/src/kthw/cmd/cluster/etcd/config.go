@@ -31,13 +31,13 @@ ExecStart=/usr/local/bin/etcd \
   --listen-peer-urls "https://{{.PrivateIP}}:2380" \
   --heartbeat-interval 200 \
   --election-timeout 5000 \
-  --trusted-ca-file /etc/kubernetes/pki/ca.crt \
-  --cert-file /etc/kubernetes/pki/etcd.crt \
-  --key-file /etc/kubernetes/pki/etcd.key \
+  --trusted-ca-file /etc/etcd/pki/ca.crt \
+  --cert-file /etc/etcd/pki/etcd.crt \
+  --key-file /etc/etcd/pki/etcd.key \
   --client-cert-auth \
-  --peer-trusted-ca-file /etc/kubernetes/pki/ca.crt \
-  --peer-cert-file /etc/kubernetes/pki/etcd.crt \
-  --peer-key-file /etc/kubernetes/pki/etcd.key \
+  --peer-trusted-ca-file /etc/etcd/pki/ca.crt \
+  --peer-cert-file /etc/etcd/pki/etcd.crt \
+  --peer-key-file /etc/etcd/pki/etcd.key \
   --peer-client-cert-auth
 
 [Install]

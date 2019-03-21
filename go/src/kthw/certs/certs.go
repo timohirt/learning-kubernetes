@@ -106,29 +106,9 @@ func (e *EtcdClientCert) Write() error {
 	return writeCert(e, e.BaseDir, e.PrivateKeyBytes, e.PublicKeyBytes)
 }
 
-// LoadEtcdClientCert loads private and public key of a admin client certificate
-func LoadEtcdClientCert(config Config) (*EtcdClientCert, error) {
-	cert := EtcdClientCert{
-		BaseDir: config.BaseDir}
-
-	privateKeyBytes, err := readFromFile(cert.PrivateKeyPath())
-	if err != nil {
-		return nil, fmt.Errorf("Could not load private key: '%s'", err)
-	}
-	cert.PrivateKeyBytes = privateKeyBytes
-
-	publicKeyBytes, err := readFromFile(cert.PublicKeyPath())
-	if err != nil {
-		return nil, fmt.Errorf("Could not load private key: '%s'", err)
-	}
-	cert.PublicKeyBytes = publicKeyBytes
-
-	return &cert, nil
-}
-
 // CertGenerator generates certificates using a CA
 type CertGenerator struct {
-	CACerts     *CACerts
+	CA          *CA
 	caKey       crypto.Signer
 	caCert      *x509.Certificate
 	signingConf *config.Signing
@@ -144,17 +124,17 @@ type GeneratesCerts interface {
 }
 
 // NewCertGenerator creates a CertGenerator using given CACerts
-func NewCertGenerator(ca *CACerts, certsConf Config) (*CertGenerator, error) {
-	if ca.CA == nil {
+func NewCertGenerator(ca *CA, certsConf Config) (*CertGenerator, error) {
+	if ca == nil {
 		return nil, fmt.Errorf("CACerts not porpery initiated. Either InitCA or LoadCA")
 	}
 
-	caKey, err := helpers.ParsePrivateKeyPEM(ca.CA.KeyBytes)
+	caKey, err := helpers.ParsePrivateKeyPEM(ca.KeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("Error while CA parsing private key: %s", err)
 	}
 
-	caCert, err := helpers.ParseCertificatePEM(ca.CA.CertBytes)
+	caCert, err := helpers.ParseCertificatePEM(ca.CertBytes)
 	if err != nil {
 		return nil, fmt.Errorf("Error while parsing CA certificate: %s", err)
 	}
@@ -172,7 +152,7 @@ func NewCertGenerator(ca *CACerts, certsConf Config) (*CertGenerator, error) {
 		},
 	}
 	return &CertGenerator{
-		CACerts:     ca,
+		CA:          ca,
 		caKey:       caKey,
 		caCert:      caCert,
 		signingConf: signingConf,
@@ -181,13 +161,13 @@ func NewCertGenerator(ca *CACerts, certsConf Config) (*CertGenerator, error) {
 
 // LoadCertGenerator loads a existing CA and creates a CertGenerator.
 func LoadCertGenerator() (*CertGenerator, error) {
-	conf := ReadConfig()
-	caCerts, err := LoadCACerts(conf)
+	ca, err := NewDefaultCertificateLoader().LoadCA()
 	if err != nil {
 		return nil, fmt.Errorf("Error while loading CA. %s", err)
 	}
 
-	certGenerator, err := NewCertGenerator(caCerts, conf)
+	conf := ReadConfig()
+	certGenerator, err := NewCertGenerator(ca, conf)
 	if err != nil {
 		return nil, fmt.Errorf("Error while creating certificate generator: %s", err)
 	}
@@ -195,7 +175,7 @@ func LoadCertGenerator() (*CertGenerator, error) {
 }
 
 // GetCA returns the CA used to generate certificates
-func (c *CertGenerator) GetCA() *CA { return c.CACerts.CA }
+func (c *CertGenerator) GetCA() *CA { return c.CA }
 
 const noHostname string = ""
 

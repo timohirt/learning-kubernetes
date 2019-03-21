@@ -204,3 +204,14 @@ func IsValidRole(role string) error {
 func AllValidRoles() []string {
 	return validRoles
 }
+
+// SelectHostsInRole selects Config of hosts in a given role
+func SelectHostsInRole(hostConfigs []*Config, role string) []*Config {
+	var hostsInRole []*Config
+	for _, host := range hostConfigs {
+		if common.ArrayContains(host.Roles, role) {
+			hostsInRole = append(hostsInRole, host)
+		}
+	}
+	return hostsInRole
+}

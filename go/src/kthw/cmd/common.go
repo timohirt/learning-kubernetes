@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"kthw/certs"
 	"kthw/cmd/cluster/etcd"
+	"kthw/cmd/cluster/kube"
 	"kthw/cmd/common"
 	"kthw/cmd/hcloudclient"
 	"kthw/cmd/infra/network"
@@ -41,6 +42,13 @@ func installEtcd(configs []*server.Config, sshClient sshconnect.SSHOperations, c
 	fmt.Println("Installing etcd")
 
 	err := etcd.InstallOnHost(configs, sshClient, certGenerator)
+	common.WhenErrPrintAndExit(err)
+}
+
+func installKubernetesController(configs []*server.Config, sshclient sshconnect.SSHOperations, certLoader certs.CertificateLoader) {
+	fmt.Println("Installing kubernetes controller")
+
+	err := kube.InstallOnHosts(configs, sshclient, certLoader)
 	common.WhenErrPrintAndExit(err)
 }
 

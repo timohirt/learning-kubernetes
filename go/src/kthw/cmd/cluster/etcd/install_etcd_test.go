@@ -53,9 +53,9 @@ func TestInstallEtcd(t *testing.T) {
 	}
 
 	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Download etcd binary", hostInEtcdRole.PublicIP, t)
-	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Upload etcd certificate public key to /etc/kubernetes/pki/etcd.crt", hostInEtcdRole.PublicIP, t)
-	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Upload etcd certificate private key to /etc/kubernetes/pki/etcd.key", hostInEtcdRole.PublicIP, t)
-	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Upload CA certificate public key to /etc/kubernetes/pki/ca.crt", hostInEtcdRole.PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Upload etcd certificate public key to /etc/etcd/pki/etcd.crt", hostInEtcdRole.PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Upload etcd certificate private key to /etc/etcd/pki/etcd.key", hostInEtcdRole.PublicIP, t)
+	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Upload CA certificate public key to /etc/etcd/pki/ca.crt", hostInEtcdRole.PublicIP, t)
 	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Untar etcd archive and copy to /usr/local/bin", hostInEtcdRole.PublicIP, t)
 	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Copy etcd systemd service to host", hostInEtcdRole.PublicIP, t)
 	sshconnect.EnsureCommandIssued(mock.RunCmdsCommands, "Enable and start etcd service", hostInEtcdRole.PublicIP, t)

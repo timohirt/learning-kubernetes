@@ -12,7 +12,7 @@ func createCertGenerator(t *testing.T) (*certs.CertGenerator, certs.Config) {
 	caCerts.InitCa()
 	helperEnsureCaCertsInitialized(t, caCerts)
 	certsConf := certs.Config{BaseDir: certsDir}
-	certGenerator, err := certs.NewCertGenerator(caCerts, certsConf)
+	certGenerator, err := certs.NewCertGenerator(caCerts.CA, certsConf)
 	helperFailIfErr(t, "Error while creating CertGenerator", err)
 
 	return certGenerator, certsConf

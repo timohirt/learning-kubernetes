@@ -32,8 +32,24 @@ var installEtcdCommand = &cobra.Command{
 		installEtcd(serverConfigs, sshClient, certGenerator)
 	}}
 
+var installKubernetesControllerCommand = &cobra.Command{
+	Use:   "k8s-controller",
+	Short: "Generate config, upload certificates and install controller on node",
+	Run: func(cmd *cobra.Command, args []string) {
+		sshClient := sshconnect.NewSSHConnect(Verbose)
+		certLoader := certs.NewDefaultCertificateLoader()
+		serverConfigs, err := server.AllFromConfig()
+		if err != nil {
+			fmt.Printf("Error while loading servers from configuration: %s\n", err)
+			os.Exit(1)
+		}
+
+		installKubernetesController(serverConfigs, sshClient, certLoader)
+	}}
+
 func clusterCommands() *cobra.Command {
 	clusterCommand.PersistentFlags().StringVarP(&APIToken, "apiToken", "a", "", "API token for access to hcloud (required)")
 	clusterCommand.AddCommand(installEtcdCommand)
+	clusterCommand.AddCommand(installKubernetesControllerCommand)
 	return clusterCommand
 }

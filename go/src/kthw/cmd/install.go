@@ -21,6 +21,7 @@ var kubernetesCluster = &cobra.Command{
 		sshClient := sshconnect.NewSSHConnect(Verbose)
 		certGenerator, err := certs.LoadCertGenerator()
 		common.WhenErrPrintAndExit(err)
+		certLoader := certs.NewDefaultCertificateLoader()
 
 		serverConfigs, _ := server.AllFromConfig()
 		for _, conf := range serverConfigs {
@@ -38,6 +39,7 @@ var kubernetesCluster = &cobra.Command{
 
 		setupWireguardAndUpdateConfig(serverConfigs, sshClient)
 		installEtcd(serverConfigs, sshClient, certGenerator)
+		installKubernetesController(serverConfigs, sshClient, certLoader)
 	}}
 
 func installCommands() *cobra.Command {
