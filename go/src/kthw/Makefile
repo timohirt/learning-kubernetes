@@ -1,5 +1,5 @@
 GOCMD=go
-BOBUILD=$(GOCMD) build
+GOBUILD=$(GOCMD) build
 GOTEST=$(GOCMD) test
 
 DEPCMD=dep
