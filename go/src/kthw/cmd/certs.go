@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var certsCommand = &cobra.Command{Use: "certs", Short: "Create CA, Server and Client certificates"}
+var certsCommand = &cobra.Command{Use: "certs", Short: "Provision a certificate authority and generate certificates"}
 
 var initCACommand = &cobra.Command{
 	Use:   "init-ca",

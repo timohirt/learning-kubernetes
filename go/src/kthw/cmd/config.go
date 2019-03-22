@@ -18,7 +18,7 @@ const (
 	ConfProjectNameKey = "project.name"
 )
 
-var configCommand = &cobra.Command{Use: "config", Short: "Manage configuration"}
+var projectCommand = &cobra.Command{Use: "project", Short: "Create and manage configuration of a project"}
 
 var initConfCommand = &cobra.Command{
 	Use:   "new <project>",
@@ -79,9 +79,9 @@ var addServerCommand = &cobra.Command{
 		fmt.Printf("Server %s successfully added to config.\n", serverName)
 	}}
 
-func configCommands() *cobra.Command {
-	configCommand.AddCommand(initConfCommand)
-	configCommand.AddCommand(addServerCommand)
-	configCommand.AddCommand(addSSHKeyCommand)
-	return configCommand
+func projectCommands() *cobra.Command {
+	projectCommand.AddCommand(initConfCommand)
+	projectCommand.AddCommand(addServerCommand)
+	projectCommand.AddCommand(addSSHKeyCommand)
+	return projectCommand
 }
