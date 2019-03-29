@@ -36,11 +36,23 @@ packages:
   - kubelet
   - kubeadm
   - kubectl
+write_files:
+  - content: |
+      {
+        "exec-opts": ["native.cgroupdriver=systemd"],
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "100m"
+        },
+        "storage-driver": "overlay2"
+      }
+    path: /etc/docker/daemon.json
 runcmd:
   - [ sudo, ufw, allow, 22/tcp ]
   - [ sudo, ufw, allow, 51820/udp ]
   - [ sudo, ufw, enable ]
   - [ swapoff, -a ]
+  - [ mkdir, -p, /etc/systemd/system/docker.service.d ]
   - [ mkdir, -p, /etc/kubernetes/pki ]
   - [ apt-mark, hold, kubelet, kubeadm, kubectl, docker-ce ]
 `

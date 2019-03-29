@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"kthw/certs"
+	"kthw/cmd/common"
 	"kthw/cmd/infra/server"
 	"kthw/cmd/sshconnect"
 	"os"
@@ -11,7 +12,12 @@ import (
 )
 
 // InstallOnHosts installs kubernetes to all hosts in role controller or worker
-func InstallOnHosts(hostConfigs []*server.Config, ssh sshconnect.SSHOperations, certsLoader certs.CertificateLoader) error {
+func InstallOnHosts(
+	hostConfigs []*server.Config,
+	ssh sshconnect.SSHOperations,
+	certsLoader certs.CertificateLoader,
+	certGenerator certs.GeneratesCerts) error {
+
 	controllerHosts := server.SelectHostsInRole(hostConfigs, "controller")
 	if len(controllerHosts) <= 0 {
 		return fmt.Errorf("List of provided hosts didn't contain a host with role controller, but one controller is required")
@@ -28,7 +34,7 @@ func InstallOnHosts(hostConfigs []*server.Config, ssh sshconnect.SSHOperations, 
 	}
 
 	for _, controllerHost := range controllerHosts {
-		allCommands := baseSetup(controllerHost, etcdNodes, certsLoader)
+		allCommands := baseSetup(controllerHost, etcdNodes, certsLoader, certGenerator)
 
 		if len(controllerHosts) == 1 {
 			allCommands = append(allCommands, untaintMaster(controllerHost))
@@ -50,30 +56,29 @@ func InstallOnHosts(hostConfigs []*server.Config, ssh sshconnect.SSHOperations, 
 	return nil
 }
 
-func baseSetup(controllerHost *server.Config, etcdNodes []EtcdNode, certsLoader certs.CertificateLoader) []sshconnect.Command {
-	host := controllerHost.PublicIP
+func baseSetup(
+	controllerHost *server.Config,
+	etcdNodes []EtcdNode,
+	certsLoader certs.CertificateLoader,
+	certGenerator certs.GeneratesCerts) []sshconnect.Command {
 
-	etcdClientCert, err := certsLoader.LoadEtcdClientCert()
-	if err != nil {
-		fmt.Printf("Error while loading etcd client certificate: %s", err)
-		os.Exit(1)
-	}
+	host := controllerHost.PublicIP
 	ca, err := certsLoader.LoadCA()
 	if err != nil {
 		fmt.Printf("Error while loading CA certificate: %s", err)
 		os.Exit(1)
 	}
 
-	return []sshconnect.Command{
-		uploadEtcdClientCertPrivateKey(host, etcdClientCert),
-		uploadEtcdClientCertPublicKey(host, etcdClientCert),
+	commands := uploadEtcdClientCert(host, certGenerator)
+	commands = append(commands,
 		uploadCAPublicKey(host, ca),
 		uploadCAPrivateKey(host, ca),
 		uploadKubeadmMasterConfig(controllerHost, etcdNodes),
 		installKubernetesCluster(controllerHost),
 		setupKubectl(controllerHost),
-		openFirewall(controllerHost),
-	}
+		openFirewall(controllerHost))
+
+	return commands
 }
 
 func uploadKubeadmMasterConfig(hostConfig *server.Config, etcdNodes []EtcdNode) *sshconnect.CopyFileCommand {
@@ -91,20 +96,21 @@ func uploadKubeadmMasterConfig(hostConfig *server.Config, etcdNodes []EtcdNode) 
 		Description: "Copy kubeadm config"}
 }
 
-func uploadEtcdClientCertPublicKey(host string, etcdClientCert *certs.EtcdClientCert) *sshconnect.CopyFileCommand {
-	return &sshconnect.CopyFileCommand{
-		Host:        host,
-		FileContent: bytes.NewReader(etcdClientCert.PublicKeyBytes),
-		FilePath:    "/etc/kubernetes/pki/etcd-client.crt",
-		Description: "Upload etcd client certificate public key to /etc/kubernetes/pki/etcd-client.crt"}
-}
+func uploadEtcdClientCert(host string, certGenerator certs.GeneratesCerts) []sshconnect.Command {
+	etcdClientCert, err := certGenerator.GenEtcdClientCertificate()
+	common.WhenErrPrintAndExit(err)
 
-func uploadEtcdClientCertPrivateKey(host string, etcdClientCert *certs.EtcdClientCert) *sshconnect.CopyFileCommand {
-	return &sshconnect.CopyFileCommand{
-		Host:        host,
-		FileContent: bytes.NewReader(etcdClientCert.PrivateKeyBytes),
-		FilePath:    "/etc/kubernetes/pki/etcd-client.key",
-		Description: "Upload etcd client certificate private key to /etc/kubernetes/pki/etcd-client.key"}
+	return []sshconnect.Command{
+		&sshconnect.CopyFileCommand{
+			Host:        host,
+			FileContent: bytes.NewReader(etcdClientCert.PublicKeyBytes),
+			FilePath:    "/etc/kubernetes/pki/etcd-client.crt",
+			Description: "Upload etcd client certificate public key to /etc/kubernetes/pki/etcd-client.crt"},
+		&sshconnect.CopyFileCommand{
+			Host:        host,
+			FileContent: bytes.NewReader(etcdClientCert.PrivateKeyBytes),
+			FilePath:    "/etc/kubernetes/pki/etcd-client.key",
+			Description: "Upload etcd client certificate private key to /etc/kubernetes/pki/etcd-client.key"}}
 }
 
 func uploadCAPublicKey(host string, ca *certs.CA) *sshconnect.CopyFileCommand {

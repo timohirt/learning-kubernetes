@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func TestReadWriteCertConfig(t *testing.T) {
-	certs.WriteDefaultConfig()
+func TestInitDefaultConfigAndReadConfig(t *testing.T) {
+	certs.InitDefaultConfig()
 
 	conf := certs.ReadConfig()
 	if conf.BaseDir != "pki" {

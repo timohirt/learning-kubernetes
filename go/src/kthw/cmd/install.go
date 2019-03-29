@@ -39,7 +39,7 @@ var kubernetesCluster = &cobra.Command{
 
 		setupWireguardAndUpdateConfig(serverConfigs, sshClient)
 		installEtcd(serverConfigs, sshClient, certGenerator)
-		installKubernetesController(serverConfigs, sshClient, certLoader)
+		installKubernetesController(serverConfigs, sshClient, certLoader, certGenerator)
 	}}
 
 func installCommands() *cobra.Command {

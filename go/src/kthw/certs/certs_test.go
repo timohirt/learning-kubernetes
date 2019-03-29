@@ -3,7 +3,6 @@ package certs_test
 import (
 	"kthw/certs"
 	"path"
-	"reflect"
 	"testing"
 )
 
@@ -16,47 +15,6 @@ func createCertGenerator(t *testing.T) (*certs.CertGenerator, certs.Config) {
 	helperFailIfErr(t, "Error while creating CertGenerator", err)
 
 	return certGenerator, certsConf
-}
-
-func TestGenerateWriteReadAdminClientCert(t *testing.T) {
-	certGenerator, certsConfig := createCertGenerator(t)
-
-	adminClientCert, err := certGenerator.GenAdminClientCertificate()
-	helperFailIfErr(t, "Error creating admin client certificate", err)
-
-	if adminClientCert.PrivateKeyBytes == nil {
-		t.Fatal("Admin client private key not generated")
-	}
-
-	if adminClientCert.PrivateKeyPath() != path.Join(adminClientCert.BaseDir, "admin.key") {
-		t.Fatalf("Private key path wrong. Should be '$baseDir/admin.key'.")
-	}
-
-	if adminClientCert.PublicKeyBytes == nil {
-		t.Fatal("Admin client pubic key not generated")
-	}
-
-	if adminClientCert.PublicKeyPath() != path.Join(adminClientCert.BaseDir, "admin.crt") {
-		t.Fatalf("Public key path wrong. Should be '$baseDir/admin.crt'.")
-	}
-
-	err = adminClientCert.Write()
-	if err != nil {
-		t.Errorf("Error while writing admin client certificate: '%s'", err)
-	}
-
-	loadedCert, err := certs.LoadAdminClientCert(certsConfig)
-	if err != nil {
-		t.Errorf("Error while loading admin client certificate: '%s'", err)
-	}
-
-	if !reflect.DeepEqual(loadedCert.PrivateKeyBytes, adminClientCert.PrivateKeyBytes) {
-		t.Error("Private key of loaded admin client cert differs from key generated and written to file.")
-	}
-
-	if !reflect.DeepEqual(loadedCert.PublicKeyBytes, adminClientCert.PublicKeyBytes) {
-		t.Error("Public key of loaded admin client differs from key generated and written to file.")
-	}
 }
 
 func TestGenerateEtcdCert(t *testing.T) {

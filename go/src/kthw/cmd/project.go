@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"kthw/certs"
 	"kthw/cmd/common"
+	"kthw/cmd/hcloudclient"
 	"kthw/cmd/infra/server"
 	"kthw/cmd/infra/sshkey"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -20,38 +23,50 @@ const (
 
 var projectCommand = &cobra.Command{Use: "project", Short: "Create and manage configuration of a project"}
 
-var initConfCommand = &cobra.Command{
-	Use:   "new <project>",
-	Short: "Creates a config file of a new project.",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		viper.SetConfigFile(defaultConfigFile)
-		projectName := args[0]
-		viper.Set(ConfProjectNameKey, projectName)
-		server.SetHCloudServerDefaults()
-		err := viper.WriteConfig()
-		common.WhenErrPrintAndExit(err)
-	}}
-
-var addSSHKeyCommand = &cobra.Command{
-	Use:   "add-ssh-key <name> <file>",
-	Short: "Adds a SSH public key to the config which will be set as authorized key of root user of created servers",
+var newProjectCommand = &cobra.Command{
+	Use:   "new <name> <ssh-public-key-file>",
+	Short: "Creates a config file of a new project and sets up everything required to provision K8s clusters.",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		name := args[0]
-		file := args[1]
+		if APIToken == "" {
+			fmt.Println("ApiToken not found. Make sure you set the --apiToken flag")
+			os.Exit(1)
+		}
 
-		err := sshkey.AddSSHPublicKeyToConfig(name, file)
+		viper.SetConfigFile(defaultConfigFile)
+		projectName := args[0]
+		sshPublicKeyFilePath := args[1]
+		viper.Set(ConfProjectNameKey, projectName)
+		server.SetHCloudServerDefaults()
+		fmt.Println("Initialised project.yaml with defaults.")
+
+		sshPublicKey, err := sshkey.AddSSHPublicKeyToConfig(projectName, sshPublicKeyFilePath)
 		common.WhenErrPrintAndExit(err)
+		fmt.Println("Added SSH key to config.")
+
+		hcloudClient := hcloudclient.NewHCloudClient(APIToken)
+		updatedConfig := sshkey.CreateSSHKey(*sshPublicKey, hcloudClient)
+		updatedConfig.WriteToConfig()
+		fmt.Println("SSH key created in hcloud.")
+
+		certsConf := certs.InitDefaultConfig()
+		caCerts := certs.DefaultCACerts(certsConf.BaseDir)
+		err = caCerts.InitCa()
+		if err != nil {
+			fmt.Printf("Error while initiation CA: %s\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("CA private and public keys generated and stored in %s", caCerts.CABaseDir)
+		fmt.Println("Initialised PKI infrastructure.")
+
 		err = viper.WriteConfig()
 		common.WhenErrPrintAndExit(err)
-
-		fmt.Printf("SSH key '%s' successfully added to config.\n", name)
 	}}
 
 var addServerCommand = &cobra.Command{
 	Use:   "add-server <name> <roles>",
 	Short: "Adds a new server to the config file.",
+	Long:  "Pick a random name for this server. Valid roles are controller, worker and etcd.",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 2 {
 			return fmt.Errorf("Expected exactly two arguments, but found '%d'", len(args))
@@ -80,8 +95,7 @@ var addServerCommand = &cobra.Command{
 	}}
 
 func projectCommands() *cobra.Command {
-	projectCommand.AddCommand(initConfCommand)
+	projectCommand.AddCommand(newProjectCommand)
 	projectCommand.AddCommand(addServerCommand)
-	projectCommand.AddCommand(addSSHKeyCommand)
 	return projectCommand
 }

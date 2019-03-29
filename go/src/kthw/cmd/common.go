@@ -45,10 +45,15 @@ func installEtcd(configs []*server.Config, sshClient sshconnect.SSHOperations, c
 	common.WhenErrPrintAndExit(err)
 }
 
-func installKubernetesController(configs []*server.Config, sshclient sshconnect.SSHOperations, certLoader certs.CertificateLoader) {
+func installKubernetesController(
+	configs []*server.Config,
+	sshclient sshconnect.SSHOperations,
+	certLoader certs.CertificateLoader,
+	certGenerator certs.GeneratesCerts) {
+
 	fmt.Println("Installing kubernetes controller")
 
-	err := kube.InstallOnHosts(configs, sshclient, certLoader)
+	err := kube.InstallOnHosts(configs, sshclient, certLoader, certGenerator)
 	common.WhenErrPrintAndExit(err)
 }
 

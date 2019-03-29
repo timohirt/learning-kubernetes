@@ -8,7 +8,7 @@ import (
 func TestAddSSHPublicKeyToConfig(t *testing.T) {
 	name := "my_ssh_key"
 	file := "testdata/id_rsa.pub"
-	err := sshkey.AddSSHPublicKeyToConfig(name, file)
+	_, err := sshkey.AddSSHPublicKeyToConfig(name, file)
 	if err != nil {
 		t.Fatalf("Error while parsing SSH public key: %s", err)
 	}

@@ -10,11 +10,12 @@ import (
 
 func TestFailInstallIfNoHostsWithRoleControllerExist(t *testing.T) {
 	mock := sshconnect.NewSSHOperationsMock()
-	certLoaderMock := NewCertificateLoaderMock()
+	certLoaderMock := certs.NewCertificateLoaderMock()
+	generatesCerts := certs.NewGeneratesCertsMock()
 	hostConfigs := []*server.Config{
 		&server.Config{ID: 1, PublicIP: "192.168.1.2", Roles: []string{"etcd"}}}
 
-	err := kube.InstallOnHosts(hostConfigs, mock, certLoaderMock)
+	err := kube.InstallOnHosts(hostConfigs, mock, certLoaderMock, generatesCerts)
 
 	if err == nil {
 		t.Errorf("Installing kubernetes if there is no host with role controller is not possible.\n")
@@ -23,27 +24,29 @@ func TestFailInstallIfNoHostsWithRoleControllerExist(t *testing.T) {
 
 func TestFailInstallIfMoreThanOneHostWithRoleControllerExist(t *testing.T) {
 	mock := sshconnect.NewSSHOperationsMock()
-	certLoaderMock := NewCertificateLoaderMock()
+	certLoaderMock := certs.NewCertificateLoaderMock()
+	generatesCerts := certs.NewGeneratesCertsMock()
 	hostConfigs := []*server.Config{
 		&server.Config{ID: 1, PublicIP: "192.168.1.1", Roles: []string{"controller"}},
 		&server.Config{ID: 2, PublicIP: "192.168.1.2", Roles: []string{"controller"}}}
 
-	err := kube.InstallOnHosts(hostConfigs, mock, certLoaderMock)
+	err := kube.InstallOnHosts(hostConfigs, mock, certLoaderMock, generatesCerts)
 
 	if err == nil {
 		t.Errorf("Installing kubernetes is currently only supported with on controller.\n")
 	}
 }
 
-func TestInstallEtcd(t *testing.T) {
+func TestInstallKubernetes(t *testing.T) {
 	sshMock := sshconnect.NewSSHOperationsMock()
-	certLoaderMock := NewCertificateLoaderMock()
+	certLoaderMock := certs.NewCertificateLoaderMock()
+	generatesCerts := certs.NewGeneratesCertsMock()
 	hostInControllerRole := &server.Config{ID: 1, PublicIP: "192.168.1.1", Roles: []string{"controller", "etcd"}}
 	hostConfigs := []*server.Config{
 		hostInControllerRole,
 		&server.Config{ID: 2, PublicIP: "192.168.1.2", Roles: []string{"worker"}}}
 
-	err := kube.InstallOnHosts(hostConfigs, sshMock, certLoaderMock)
+	err := kube.InstallOnHosts(hostConfigs, sshMock, certLoaderMock, generatesCerts)
 	if err != nil {
 		t.Errorf("InstallOnHosts returned an unexpected error: %s\n", err)
 	}
@@ -60,24 +63,4 @@ func TestInstallEtcd(t *testing.T) {
 	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Untaint master, allow pod scheduling on master node", hostInControllerRole.PublicIP, t)
 
 	sshconnect.EnsureNoCommandsIssued(sshMock.RunCmdsCommands, hostConfigs[1].PublicIP, t)
-}
-
-type CertificateLoaderMock struct {
-	certs.CertificateLoader
-}
-
-func NewCertificateLoaderMock() certs.CertificateLoader { return &CertificateLoaderMock{} }
-
-func (c *CertificateLoaderMock) LoadEtcdClientCert() (*certs.EtcdClientCert, error) {
-	etcdCert := &certs.EtcdClientCert{
-		PrivateKeyBytes: []byte("ETCD_CLIENT_PRIVATE"),
-		PublicKeyBytes:  []byte("ETCD_CLIENT_PUBLIC")}
-	return etcdCert, nil
-}
-
-func (c *CertificateLoaderMock) LoadCA() (*certs.CA, error) {
-	ca := &certs.CA{
-		CertBytes: []byte("CA_CERT"),
-		KeyBytes:  []byte("CA_PRIVATE")}
-	return ca, nil
 }

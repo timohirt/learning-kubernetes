@@ -16,7 +16,8 @@ func ReadConfig() Config {
 	return Config{BaseDir: viper.GetString(certsBaseDirKey)}
 }
 
-// WriteDefaultConfig sets default certs config.
-func WriteDefaultConfig() {
+// InitDefaultConfig sets default certs config.
+func InitDefaultConfig() Config {
 	viper.Set(certsBaseDirKey, certsBaseDir)
+	return ReadConfig()
 }

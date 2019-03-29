@@ -23,6 +23,7 @@ func Execute() {
 	viper.SetConfigFile(defaultConfigFile)
 	viper.ReadInConfig()
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "Set 'true' for more output.")
+	rootCmd.PersistentFlags().StringVarP(&APIToken, "apiToken", "a", "", "API token for access to hcloud (required)")
 	rootCmd.AddCommand(projectCommands(), provisionCommands(), installCommands())
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

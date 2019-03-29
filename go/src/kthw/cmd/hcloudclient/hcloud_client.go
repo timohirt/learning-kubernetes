@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/hetznercloud/hcloud-go/hcloud"
+	"golang.org/x/crypto/ssh"
 )
 
 // HCloudOperations defines operations to be implemented by HCloudClient
@@ -57,11 +58,29 @@ type CreateSSHKeyResults struct {
 
 // CreateSSHKey creates a SSH key in hcloud
 func (hc *HCloudClient) CreateSSHKey(opts hcloud.SSHKeyCreateOpts) *CreateSSHKeyResults {
-	sshKey, _, err := hc.client.SSHKey.Create(hc.context, opts)
+	md5Fingerprint := fingerprintMD5(opts.PublicKey)
+
+	sshKey, _, err := hc.client.SSHKey.GetByFingerprint(hc.context, md5Fingerprint)
 	hc.ensureNoError(err)
+
+	if sshKey == nil {
+		sshKey, _, err = hc.client.SSHKey.Create(hc.context, opts)
+		hc.ensureNoError(err)
+	}
 
 	return &CreateSSHKeyResults{
 		ID: sshKey.ID}
+}
+
+func fingerprintMD5(publicKey string) string {
+	pk, _, _, _, err := ssh.ParseAuthorizedKey([]byte(publicKey))
+	if err != nil {
+		panic(err)
+	}
+
+	// Get the fingerprint
+	f := ssh.FingerprintLegacyMD5(pk)
+	return f
 }
 
 func (hc *HCloudClient) ensureNoError(err error) {

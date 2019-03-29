@@ -7,15 +7,15 @@ import (
 )
 
 // AddSSHPublicKeyToConfig reads SSH public key from file and adds it to config.
-func AddSSHPublicKeyToConfig(name string, file string) error {
-	publicSSHKey, err := parseSSHPublicKey(name, file)
+func AddSSHPublicKeyToConfig(name string, file string) (*SSHPublicKey, error) {
+	sshPublicKey, err := parseSSHPublicKey(name, file)
 	if err != nil {
-		return fmt.Errorf("Error while parsing ssh key from file '%s' config: %s", file, err)
+		return nil, fmt.Errorf("Error while parsing ssh key from file '%s' config: %s", file, err)
 	}
 
-	publicSSHKey.WriteToConfig()
+	sshPublicKey.WriteToConfig()
 
-	return nil
+	return sshPublicKey, nil
 }
 
 func parseSSHPublicKey(name string, file string) (*SSHPublicKey, error) {

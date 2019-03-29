@@ -37,7 +37,7 @@ etcd:
     {{end}}caFile: /etc/kubernetes/pki/ca.crt
     certFile: /etc/kubernetes/pki/etcd-client.crt
     keyFile: /etc/kubernetes/pki/etcd-client.key
-kubernetesVersion: v1.13.0
+kubernetesVersion: v1.14.0
 networking:
   dnsDomain: cluster.local
   podSubnet: "{{.PodNetworkCIDR}}"
