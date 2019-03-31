@@ -43,8 +43,7 @@ func TestInstallKubernetes(t *testing.T) {
 	generatesCerts := certs.NewGeneratesCertsMock()
 	hostInControllerRole := &server.Config{ID: 1, PublicIP: "192.168.1.1", Roles: []string{"controller", "etcd"}}
 	hostConfigs := []*server.Config{
-		hostInControllerRole,
-		&server.Config{ID: 2, PublicIP: "192.168.1.2", Roles: []string{"worker"}}}
+		hostInControllerRole}
 
 	err := kube.InstallOnHosts(hostConfigs, sshMock, certLoaderMock, generatesCerts)
 	if err != nil {
@@ -61,6 +60,4 @@ func TestInstallKubernetes(t *testing.T) {
 	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Open firewall pod network -> public IP and :6443 -> public IP", hostInControllerRole.PublicIP, t)
 	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Install Calico networking", hostInControllerRole.PublicIP, t)
 	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Untaint master, allow pod scheduling on master node", hostInControllerRole.PublicIP, t)
-
-	sshconnect.EnsureNoCommandsIssued(sshMock.RunCmdsCommands, hostConfigs[1].PublicIP, t)
 }

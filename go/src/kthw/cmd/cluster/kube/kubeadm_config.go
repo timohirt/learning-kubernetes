@@ -50,7 +50,7 @@ type KubeAdmParams struct {
 	PrivateIP      string
 	PublicIP       string
 	NodeName       string
-	EtcdNodes      []EtcdNode
+	EtcdNodes      []*EtcdNode
 	PodNetworkCIDR string
 }
 
@@ -58,7 +58,7 @@ type EtcdNode struct {
 	EndpointURL string
 }
 
-func NewKubeAdmParams(hostConfig *server.Config, etcdNodes []EtcdNode) KubeAdmParams {
+func NewKubeAdmParams(hostConfig *server.Config, etcdNodes []*EtcdNode) KubeAdmParams {
 	return KubeAdmParams{
 		PrivateIP:      hostConfig.PrivateIP,
 		PublicIP:       hostConfig.PublicIP,
