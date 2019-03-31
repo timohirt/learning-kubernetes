@@ -53,3 +53,11 @@ func EnsureCommandIssued(issuedCommands []Command, commandDescription string, ho
 	}
 	t.Errorf("Command '%s' was not executed on host '%s'", commandDescription, host)
 }
+
+func EnsureCommandNotIssued(issuedCommands []Command, commandDescription string, host string, t *testing.T) {
+	for _, issuedCommand := range issuedCommands {
+		if issuedCommand.GetHost() == host && issuedCommand.GetDescription() == commandDescription {
+			t.Errorf("Command '%s' was executed on host '%s'", commandDescription, host)
+		}
+	}
+}

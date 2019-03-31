@@ -11,18 +11,25 @@ import (
 	"strings"
 )
 
+type ControllerNode struct {
+	Host *server.Config
+}
+
+// InstallControllerNode installs a Kubernets controller on host.
+// If you only have one controller running, consider setting
+// `runPodsOnController = true` and deploy pods to controller.
 func InstallControllerNode(
 	host *server.Config,
 	etcdNodes []*EtcdNode,
 	ssh sshconnect.SSHOperations,
 	certsLoader certs.CertificateLoader,
 	certGenerator certs.GeneratesCerts,
-	runPodsOnMaster bool) error {
+	runPodsOnController bool) (*ControllerNode, error) {
 
 	allCommands := baseSetup(host, etcdNodes, certsLoader, certGenerator)
 
-	if runPodsOnMaster {
-		allCommands = append(allCommands, untaintMaster(host))
+	if runPodsOnController {
+		allCommands = append(allCommands, untaintController(host))
 	}
 
 	allCommands = append(allCommands, NewCalicoNetworkingAddOn().getCommands(host)...)
@@ -35,9 +42,9 @@ func InstallControllerNode(
 
 	err := ssh.RunCmds(commands)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &ControllerNode{Host: host}, nil
 }
 
 func baseSetup(
@@ -141,9 +148,9 @@ func openFirewall(hostConfig *server.Config) *sshconnect.ShellCommand {
 		Description: "Open firewall pod network -> public IP and :6443 -> public IP"}
 }
 
-func untaintMaster(hostConfig *server.Config) *sshconnect.ShellCommand {
+func untaintController(hostConfig *server.Config) *sshconnect.ShellCommand {
 	return &sshconnect.ShellCommand{
 		CommandLine: "kubectl taint nodes --all node-role.kubernetes.io/master-",
 		Host:        hostConfig.PublicIP,
-		Description: "Untaint master, allow pod scheduling on master node"}
+		Description: "Untaint controller, allow pod scheduling on controller node"}
 }
