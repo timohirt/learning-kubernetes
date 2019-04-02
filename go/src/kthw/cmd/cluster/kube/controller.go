@@ -12,19 +12,21 @@ import (
 )
 
 type ControllerNode struct {
-	Host *server.Config
+	Config *server.Config
 }
 
 // InstallControllerNode installs a Kubernets controller on host.
 // If you only have one controller running, consider setting
 // `runPodsOnController = true` and deploy pods to controller.
 func InstallControllerNode(
-	host *server.Config,
+	controllerNode *ControllerNode,
 	etcdNodes []*EtcdNode,
 	ssh sshconnect.SSHOperations,
 	certsLoader certs.CertificateLoader,
 	certGenerator certs.GeneratesCerts,
-	runPodsOnController bool) (*ControllerNode, error) {
+	runPodsOnController bool) error {
+
+	host := controllerNode.Config
 
 	allCommands := baseSetup(host, etcdNodes, certsLoader, certGenerator)
 
@@ -41,19 +43,16 @@ func InstallControllerNode(
 		LogOutput: true}
 
 	err := ssh.RunCmds(commands)
-	if err != nil {
-		return nil, err
-	}
-	return &ControllerNode{Host: host}, nil
+	return err
 }
 
 func baseSetup(
-	controllerHost *server.Config,
+	config *server.Config,
 	etcdNodes []*EtcdNode,
 	certsLoader certs.CertificateLoader,
 	certGenerator certs.GeneratesCerts) []sshconnect.Command {
 
-	host := controllerHost.PublicIP
+	host := config.PublicIP
 	ca, err := certsLoader.LoadCA()
 	if err != nil {
 		fmt.Printf("Error while loading CA certificate: %s", err)
@@ -64,16 +63,16 @@ func baseSetup(
 	commands = append(commands,
 		uploadCAPublicKey(host, ca),
 		uploadCAPrivateKey(host, ca),
-		uploadKubeadmMasterConfig(controllerHost, etcdNodes),
-		installKubernetesCluster(controllerHost),
-		setupKubectl(controllerHost),
-		openFirewall(controllerHost))
+		uploadKubeadmconfig(config, etcdNodes),
+		installKubernetesCluster(config),
+		setupKubectl(config),
+		openFirewall(config))
 
 	return commands
 }
 
-func uploadKubeadmMasterConfig(hostConfig *server.Config, etcdNodes []*EtcdNode) *sshconnect.CopyFileCommand {
-	kubeAdmParams := NewKubeAdmParams(hostConfig, etcdNodes)
+func uploadKubeadmconfig(config *server.Config, etcdNodes []*EtcdNode) *sshconnect.CopyFileCommand {
+	kubeAdmParams := NewKubeAdmParams(config, etcdNodes)
 	kubeadmConfig, err := GenerateKubeadmControllerConfig(kubeAdmParams)
 	if err != nil {
 		fmt.Printf("Error generating kubeadm controller config! %s\n", err)
@@ -81,7 +80,7 @@ func uploadKubeadmMasterConfig(hostConfig *server.Config, etcdNodes []*EtcdNode)
 	}
 
 	return &sshconnect.CopyFileCommand{
-		Host:        hostConfig.PublicIP,
+		Host:        config.PublicIP,
 		FileContent: strings.NewReader(kubeadmConfig),
 		FilePath:    "/etc/kubernetes/kubeadm-controller.conf",
 		Description: "Copy kubeadm config"}
@@ -120,37 +119,37 @@ func uploadCAPrivateKey(host string, ca *certs.CA) *sshconnect.CopyFileCommand {
 		Description: "Upload CA certificate private key to /etc/kubernetes/pki/ca.key"}
 }
 
-func removeKubernetesCluster(hostConfig *server.Config) *sshconnect.ShellCommand {
+func removeKubernetesCluster(config *server.Config) *sshconnect.ShellCommand {
 	return &sshconnect.ShellCommand{
 		CommandLine: "kubeadm reset -f",
-		Host:        hostConfig.PublicIP,
+		Host:        config.PublicIP,
 		Description: "Removing kubernetes cluster"}
 }
 
-func installKubernetesCluster(hostConfig *server.Config) *sshconnect.ShellCommand {
+func installKubernetesCluster(config *server.Config) *sshconnect.ShellCommand {
 	return &sshconnect.ShellCommand{
 		CommandLine: "kubeadm init --config /etc/kubernetes/kubeadm-controller.conf",
-		Host:        hostConfig.PublicIP,
+		Host:        config.PublicIP,
 		Description: "Install kubernetes cluster"}
 }
 
-func setupKubectl(hostConfig *server.Config) *sshconnect.ShellCommand {
+func setupKubectl(config *server.Config) *sshconnect.ShellCommand {
 	return &sshconnect.ShellCommand{
 		CommandLine: "mkdir -p $HOME/.kube && cp -i /etc/kubernetes/admin.conf $HOME/.kube/config && sudo chown $(id -u):$(id -g) $HOME/.kube/config",
-		Host:        hostConfig.PublicIP,
+		Host:        config.PublicIP,
 		Description: "Setup Kubectl"}
 }
 
-func openFirewall(hostConfig *server.Config) *sshconnect.ShellCommand {
+func openFirewall(config *server.Config) *sshconnect.ShellCommand {
 	return &sshconnect.ShellCommand{
-		CommandLine: fmt.Sprintf("ufw allow from %s to %s && ufw allow 6443", podNetworkCIDR, hostConfig.PublicIP),
-		Host:        hostConfig.PublicIP,
+		CommandLine: fmt.Sprintf("ufw allow from %s to %s && ufw allow 6443", podNetworkCIDR, config.PublicIP),
+		Host:        config.PublicIP,
 		Description: "Open firewall pod network -> public IP and :6443 -> public IP"}
 }
 
-func untaintController(hostConfig *server.Config) *sshconnect.ShellCommand {
+func untaintController(config *server.Config) *sshconnect.ShellCommand {
 	return &sshconnect.ShellCommand{
 		CommandLine: "kubectl taint nodes --all node-role.kubernetes.io/master-",
-		Host:        hostConfig.PublicIP,
+		Host:        config.PublicIP,
 		Description: "Untaint controller, allow pod scheduling on controller node"}
 }

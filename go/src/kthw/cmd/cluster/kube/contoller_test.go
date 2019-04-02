@@ -12,41 +12,50 @@ func TestInstallKubernetes(t *testing.T) {
 	sshMock := sshconnect.NewSSHOperationsMock()
 	certLoaderMock := certs.NewCertificateLoaderMock()
 	generatesCerts := certs.NewGeneratesCertsMock()
-	hostInControllerRole := &server.Config{ID: 1, PublicIP: "192.168.1.1", Roles: []string{"controller", "etcd"}}
-
+	controllerPublicIP := "192.168.1.1"
+	controllerNode := &kube.ControllerNode{
+		Config: &server.Config{
+			ID:       1,
+			PublicIP: controllerPublicIP,
+			Roles:    []string{"controller", "etcd"}}}
 	etcdNodes := []*kube.EtcdNode{&kube.EtcdNode{EndpointURL: "irrelevant"}}
 	taintController := true
 
-	_, err := kube.InstallControllerNode(hostInControllerRole, etcdNodes, sshMock, certLoaderMock, generatesCerts, taintController)
+	err := kube.InstallControllerNode(controllerNode, etcdNodes, sshMock, certLoaderMock, generatesCerts, taintController)
 	if err != nil {
 		t.Errorf("InstallOnHosts returned an unexpected error: %s\n", err)
 	}
 
-	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Upload etcd client certificate public key to /etc/kubernetes/pki/etcd-client.crt", hostInControllerRole.PublicIP, t)
-	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Upload etcd client certificate private key to /etc/kubernetes/pki/etcd-client.key", hostInControllerRole.PublicIP, t)
-	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Upload CA certificate public key to /etc/kubernetes/pki/ca.crt", hostInControllerRole.PublicIP, t)
-	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Upload CA certificate private key to /etc/kubernetes/pki/ca.key", hostInControllerRole.PublicIP, t)
-	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Copy kubeadm config", hostInControllerRole.PublicIP, t)
-	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Install kubernetes cluster", hostInControllerRole.PublicIP, t)
-	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Setup Kubectl", hostInControllerRole.PublicIP, t)
-	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Open firewall pod network -> public IP and :6443 -> public IP", hostInControllerRole.PublicIP, t)
-	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Install Calico networking", hostInControllerRole.PublicIP, t)
-	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Untaint controller, allow pod scheduling on controller node", hostInControllerRole.PublicIP, t)
+	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Upload etcd client certificate public key to /etc/kubernetes/pki/etcd-client.crt", controllerPublicIP, t)
+	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Upload etcd client certificate private key to /etc/kubernetes/pki/etcd-client.key", controllerPublicIP, t)
+	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Upload CA certificate public key to /etc/kubernetes/pki/ca.crt", controllerPublicIP, t)
+	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Upload CA certificate private key to /etc/kubernetes/pki/ca.key", controllerPublicIP, t)
+	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Copy kubeadm config", controllerPublicIP, t)
+	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Install kubernetes cluster", controllerPublicIP, t)
+	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Setup Kubectl", controllerPublicIP, t)
+	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Open firewall pod network -> public IP and :6443 -> public IP", controllerPublicIP, t)
+	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Install Calico networking", controllerPublicIP, t)
+	sshconnect.EnsureCommandIssued(sshMock.RunCmdsCommands, "Untaint controller, allow pod scheduling on controller node", controllerPublicIP, t)
 }
 
 func TestDoNotUntaintController(t *testing.T) {
 	sshMock := sshconnect.NewSSHOperationsMock()
 	certLoaderMock := certs.NewCertificateLoaderMock()
 	generatesCerts := certs.NewGeneratesCertsMock()
-	hostInControllerRole := &server.Config{ID: 1, PublicIP: "192.168.1.1", Roles: []string{"controller", "etcd"}}
+	controllerPublicIP := "192.168.1.1"
+	controllerNode := &kube.ControllerNode{
+		Config: &server.Config{
+			ID:       1,
+			PublicIP: controllerPublicIP,
+			Roles:    []string{"controller", "etcd"}}}
 
 	etcdNodes := []*kube.EtcdNode{&kube.EtcdNode{EndpointURL: "irrelevant"}}
 	taintController := false
 
-	_, err := kube.InstallControllerNode(hostInControllerRole, etcdNodes, sshMock, certLoaderMock, generatesCerts, taintController)
+	err := kube.InstallControllerNode(controllerNode, etcdNodes, sshMock, certLoaderMock, generatesCerts, taintController)
 	if err != nil {
 		t.Errorf("InstallOnHosts returned an unexpected error: %s\n", err)
 	}
 
-	sshconnect.EnsureCommandNotIssued(sshMock.RunCmdsCommands, "Untaint controller, allow pod scheduling on controller node", hostInControllerRole.PublicIP, t)
+	sshconnect.EnsureCommandNotIssued(sshMock.RunCmdsCommands, "Untaint controller, allow pod scheduling on controller node", controllerPublicIP, t)
 }
